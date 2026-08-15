@@ -1,0 +1,28 @@
+{
+  "name": "skor-panosu",
+  "version": "1.0.0",
+  "description": "Canlı skor overlay - animasyonlu skorboard",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win portable"
+  },
+  "author": "Lesbenjaminsss",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "electron": "^43.4.0"
+  },
+  "build": {
+    "appId": "com.benai.skorpanosu",
+    "productName": "Skor Panosu",
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "portable"
+      ]
+    }
+  }
+}

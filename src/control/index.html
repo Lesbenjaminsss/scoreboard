@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Scoreboard — Control</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo-mark">SB</div>
+        <div>
+          <h1 data-i18n="appName">Scoreboard</h1>
+        </div>
+      </div>
+      <div class="status">
+        <span id="connBadge" class="badge warn">Bağlanıyor…</span>
+        <span id="updated" class="updated">—</span>
+        <button id="refreshBtn" class="btn ghost" data-i18n="refresh">Yenile</button>
+      </div>
+    </header>
+
+    <main class="cols">
+      <!-- League list -->
+      <section class="panel leagues">
+        <div class="panel-head">
+          <h2 data-i18n="leagues">Ligler</h2>
+          <span id="leagueCount" class="count">0</span>
+        </div>
+        <input id="search" class="search" type="text" placeholder="Lig ara…" autocomplete="off" />
+        <label class="fav-filter">
+          <input id="onlyFav" type="checkbox" />
+          <span data-i18n="onlyFavorites">Sadece favoriler</span>
+          <span id="favCount" class="fav-count">0</span>
+        </label>
+        <div id="leagueList" class="league-list"></div>
+      </section>
+
+      <!-- Matches -->
+      <section class="panel matches">
+        <div class="panel-head">
+          <h2 id="matchesTitle">Maçlar</h2>
+          <span id="matchCount" class="count">0</span>
+        </div>
+        <div id="matchList" class="match-list">
+          <div class="hint">Soldan bir lig seçin</div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="settings">
+      <div class="selected">
+        <span class="sel-label" data-i18n="watchedMatches">İzlenen maçlar</span>
+        <span id="selCount" class="sel-count">0</span>
+        <button id="clearBtn" class="btn ghost sm" data-i18n="clear">Temizle</button>
+      </div>
+
+      <div class="ctrl">
+        <label>
+          <span data-i18n="cycle">Dönüş (sn)</span>
+          <input id="cycleSec" type="number" min="2" max="120" step="1" />
+        </label>
+        <label>
+          <span data-i18n="refreshLabel">Yenileme (sn)</span>
+          <input id="pollSec" type="number" min="5" max="120" step="1" />
+        </label>
+        <label>
+          <span data-i18n="scale">Ölçek %</span>
+          <input id="scalePct" type="number" min="40" max="200" step="5" />
+        </label>
+        <label>
+          <span data-i18n="opacity">Opaklık %</span>
+          <input id="opacityPct" type="number" min="10" max="100" step="5" />
+        </label>
+        <label>
+          <span data-i18n="position">Konum</span>
+          <select id="positionSel">
+            <option value="bottom" data-i18n="posBottom">Alt</option>
+            <option value="top" data-i18n="posTop">Üst</option>
+            <option value="top-left" data-i18n="posTopLeft">Sol Üst</option>
+            <option value="top-right" data-i18n="posTopRight">Sağ Üst</option>
+            <option value="middle-left" data-i18n="posMiddleLeft">Sol Orta</option>
+            <option value="middle-right" data-i18n="posMiddleRight">Sağ Orta</option>
+          </select>
+        </label>
+        <label>
+          <span data-i18n="language">Dil</span>
+          <select id="langSel">
+            <option value="tr">Türkçe</option>
+            <option value="en">English</option>
+          </select>
+        </label>
+        <label class="check">
+          <input id="showVersion" type="checkbox" />
+          <span data-i18n="showVersion">Sürümü göster</span>
+        </label>
+        <label>
+          <span data-i18n="versionPosition">Sürüm konumu</span>
+          <select id="versionPosSel">
+            <option value="bottom-left" data-i18n="vPosBottomLeft">Sol Alt</option>
+            <option value="top-left" data-i18n="vPosTopLeft">Sol Üst</option>
+          </select>
+        </label>
+        <button id="overlayBtn" class="btn primary" data-i18n="hideBoard">Panoyu Gizle</button>
+      </div>
+
+      <div class="obs">
+        <span class="sel-label" data-i18n="obsLabel">OBS Browser Source</span>
+        <div class="obs-row">
+          <input id="obsUrl" class="search" readonly />
+          <button id="copyBtn" class="btn ghost sm" data-i18n="copy">Kopyala</button>
+        </div>
+      </div>
+    </footer>
+
+    <script src="/i18n.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

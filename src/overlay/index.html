@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Scoreboard — Overlay</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="version" data-i18n="versionText">Scoreboard 0.01 Beta</div>
+    <div id="stage">
+      <div id="sb" class="hidden" data-pos="bottom">
+        <div class="bar" id="bar">
+          <div class="brand">
+            <div class="brand-logo-wrap"><img id="leagueLogo" class="brand-logo" alt="" draggable="false" /></div>
+            <div class="brand-name" id="leagueName">LİG</div>
+          </div>
+
+          <div class="team home">
+            <div class="crest-wrap">
+              <img id="homeCrest" class="crest" alt="" draggable="false" />
+              <div class="cards" id="homeCards"></div>
+            </div>
+            <div class="team-info">
+              <span id="homeName" class="tname">EV</span>
+            </div>
+          </div>
+
+          <div class="center">
+            <div class="score" id="score">
+              <span id="scoreHome" class="sc">-</span>
+              <span class="sep">:</span>
+              <span id="scoreAway" class="sc">-</span>
+            </div>
+            <div class="sub">
+              <img id="midLogo" class="mid-logo" alt="" draggable="false" />
+              <span id="clock" class="clock">00:00</span>
+              <span class="live"><span class="livedot"></span><span id="liveText">CANLI</span></span>
+            </div>
+          </div>
+
+          <div class="team away">
+            <div class="team-info">
+              <span id="awayName" class="tname">DEP</span>
+            </div>
+            <div class="crest-wrap">
+              <img id="awayCrest" class="crest" alt="" draggable="false" />
+              <div class="cards" id="awayCards"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="empty" class="empty hidden">
+          <div class="empty-inner">
+            <div class="empty-pulse"></div>
+            <div data-i18n="noMatchSelected">Maç seçilmedi</div>
+            <div class="empty-sub" data-i18n="noMatchSelectedSub">Scoreboard kontrol panelinden maç ekleyin</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="statsPanel" class="stats-panel hidden">
+        <div class="stats-inner">
+          <div class="stats-head">
+            <span id="statsTitle" class="stats-title">İSTATİSTİK</span>
+            <span id="statsMatch" class="stats-match"></span>
+          </div>
+          <div id="statsBody" class="stats-body"></div>
+        </div>
+      </div>
+
+      <div id="goalPanel" class="goal-panel hidden">
+        <div class="goal-inner">
+          <span class="goal-ball">⚽</span>
+          <div class="goal-body">
+            <span class="goal-tag" id="goalTag">GOL</span>
+            <span class="goal-name" id="goalName"></span>
+            <span class="goal-min" id="goalMin"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/i18n.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
