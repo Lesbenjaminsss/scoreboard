@@ -1,3 +1,9 @@
+# Preview
+<img width="661" height="82" alt="Ekran Alıntısı" src="https://github.com/user-attachments/assets/bd490faf-ff93-4f67-a20d-2562b4e3b809" />
+
+
+
+
 # Scoreboard
 
 > **Türkçe** · [English](#english)
