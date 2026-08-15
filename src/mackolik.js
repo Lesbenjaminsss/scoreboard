@@ -16,29 +16,47 @@ function fmtDate(d) {
 
 async function fetchAndParseDay(date = new Date()) {
   const url = `${BASE}?sports[]=Soccer&matchDate=${fmtDate(date)}`;
-  const res = await fetch(url, {
-    headers: {
-      Referer: 'https://www.mackolik.com/canli-sonuclar',
-      'User-Agent': USER_AGENT,
-      Accept: 'application/json',
-    },
-    signal: AbortSignal.timeout(15000),
-  });
-  if (!res.ok) throw new Error(`Mackolik HTTP ${res.status}`);
-  const json = await res.json();
-  if (!json || json.status !== 'success' || !json.data) {
-    throw new Error('Mackolik yaniti beklenmeyen bicimde');
+  // Mackolik feed sometimes returns a transient error/502; retry so the
+  // overlay doesn't stay stuck on stale data for a long stretch.
+  let lastErr = null;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      const res = await fetch(url, {
+        headers: {
+          Referer: 'https://www.mackolik.com/canli-sonuclar',
+          'User-Agent': USER_AGENT,
+          Accept: 'application/json',
+        },
+        signal: AbortSignal.timeout(15000),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json && json.status === 'success' && json.data) return parse(json);
+        lastErr = new Error('Mackolik yaniti beklenmeyen bicimde');
+      } else {
+        lastErr = new Error(`Mackolik HTTP ${res.status}`);
+      }
+    } catch (e) {
+      lastErr = e;
+    }
+    await new Promise((r) => setTimeout(r, 1200 * (attempt + 1)));
   }
-  return parse(json);
+  throw lastErr || new Error('Mackolik feed failed');
 }
 
-// For live matches the minute is derived from periodStart.
+// For live matches the minute matches what mackolik's site displays:
+// siteMinute = baseOffset + (lastUpdated - periodStart)/60000 where baseOffset
+// is 1 (1st half), 45 (2nd half) or 90 (extra time). periodStart is pinned by
+// the server so the diff is an exact whole minute; using lastUpdated (instead
+// of the local clock, which can be 60-90s ahead of the feed) avoids drifting
+// a minute ahead of the site.
 function computeMinute(m, now) {
   if (m.state !== 'live' || m.status !== 'minutes' || !m.periodStart) return null;
-  const elapsed = Math.floor((now - m.periodStart) / 60000) + 1;
-  if (m.periodId === 1) return Math.max(1, Math.min(45, elapsed));
-  if (m.periodId === 2) return Math.max(46, Math.min(90, 45 + elapsed));
-  return Math.max(91, Math.min(120, 90 + elapsed));
+  const ref = m.lastUpdated || now;
+  const diff = Math.round((ref - m.periodStart) / 60000);
+  if (m.periodId === 1) return Math.max(1, Math.min(45, 1 + diff));
+  if (m.periodId === 2) return Math.max(46, Math.min(90, 45 + diff));
+  return Math.max(91, Math.min(120, 90 + diff));
 }
 
 function clockLabel(m, minute) {
@@ -103,6 +121,7 @@ function parse(json) {
       statusBoxContent: m.statusBoxContent || null,
       periodId: m.periodId,
       periodStart: m.periodStart,
+      lastUpdated: m.lastUpdated,
       mstUtc: m.mstUtc,
       iddaaCode: m.iddaaCode || null,
       matchSlug: m.matchSlug || null,
@@ -191,7 +210,6 @@ function playerIdFromUrl(playerUrl) {
 // ---------------------------------------------------------------------------
 // Match statistics (Opta widgets rendered server-side on the stats page)
 // ---------------------------------------------------------------------------
-
 const STAT_TAB_KEYS = ['general', 'distribution', 'attack', 'defence', 'discipline'];
 
 async function fetchMatchStats(matchId, matchSlug) {

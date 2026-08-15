@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div id="version" data-i18n="versionText">Scoreboard 0.02 Beta</div>
+    <div id="version" data-i18n="versionText">Scoreboard 0.03 Beta</div>
     <div id="stage">
       <div id="sb" class="hidden" data-pos="bottom">
         <div class="bar" id="bar">
@@ -28,6 +28,7 @@
             <div class="team-info">
               <span id="homeName" class="tname">EV</span>
               <div class="goals" id="homeGoals"></div>
+              <div id="homePenFlash" class="pen-flash hidden"></div>
             </div>
           </div>
 
@@ -49,6 +50,7 @@
             <div class="team-info">
               <span id="awayName" class="tname">DEP</span>
               <div class="goals" id="awayGoals"></div>
+              <div id="awayPenFlash" class="pen-flash hidden"></div>
             </div>
             <div class="crest-wrap">
               <img id="awayCrest" class="crest" alt="" draggable="false" />
@@ -87,6 +89,33 @@
             <span class="goal-tag" id="goalTag">GOL</span>
             <span class="goal-name" id="goalName"></span>
             <span class="goal-min" id="goalMin"></span>
+            <span class="goal-assist" id="goalAssist"></span>
+          </div>
+        </div>
+      </div>
+
+      <div id="subPanel" class="sub-panel hidden">
+        <div class="sub-inner">
+          <div class="sub-head">
+            <span class="sub-title" data-i18n="subTitle">OYUNCU DEĞİŞİKLİĞİ</span>
+            <span id="subTeam" class="sub-team"></span>
+            <span id="subMin" class="sub-min"></span>
+          </div>
+          <div class="sub-row">
+            <div class="sub-photo-wrap">
+              <img id="subInPhoto" class="sub-photo" alt="" draggable="false" />
+              <span class="img-fallback" id="subInPhotoFb"></span>
+            </div>
+            <span class="sub-arrow up">▲</span>
+            <span id="subInName" class="sub-name">–</span>
+          </div>
+          <div class="sub-row">
+            <div class="sub-photo-wrap">
+              <img id="subOutPhoto" class="sub-photo" alt="" draggable="false" />
+              <span class="img-fallback" id="subOutPhotoFb"></span>
+            </div>
+            <span class="sub-arrow down">▼</span>
+            <span id="subOutName" class="sub-name">–</span>
           </div>
         </div>
       </div>

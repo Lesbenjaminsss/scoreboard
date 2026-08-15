@@ -200,7 +200,10 @@
   function renderSettings() {
     const s = state.settings || {};
     $('cycleSec').value = Math.round(s.cycleInterval / 1000 || 8);
-    $('pollSec').value = Math.round(s.pollInterval / 1000 || 15);
+    $('pollSec').value = Math.round(s.pollInterval / 1000 || 5);
+    $('statsSec').value = Math.round(s.statsShowSec || 12);
+    $('statsHalfSec').value = Math.round(s.statsHalfShowSec || 20);
+    $('statsMins').value = (s.statsShowMinutes && s.statsShowMinutes.length ? s.statsShowMinutes : [20, 40, 60, 80]).join(', ');
     $('scalePct').value = Math.round((s.scale || 1) * 100);
     $('opacityPct').value = Math.round((s.opacity == null ? 1 : s.opacity) * 100);
     $('positionSel').value = s.position || 'bottom';
@@ -249,6 +252,8 @@
         if (!Number.isFinite(v)) return;
         if (id === 'cycleSec') window.api.setSettings({ cycleInterval: Math.max(2, v) * 1000 });
         else if (id === 'pollSec') window.api.setSettings({ pollInterval: Math.max(5, v) * 1000 });
+        else if (id === 'statsSec') window.api.setSettings({ statsShowSec: Math.max(3, v) });
+        else if (id === 'statsHalfSec') window.api.setSettings({ statsHalfShowSec: Math.max(3, v) });
         else if (id === 'scalePct') window.api.setSettings({ scale: Math.max(40, Math.min(200, v)) / 100 });
         else if (id === 'opacityPct')
           window.api.setSettings({ opacity: Math.max(10, Math.min(100, v)) / 100 });
@@ -256,6 +261,16 @@
     };
     num('cycleSec');
     num('pollSec');
+    num('statsSec');
+    num('statsHalfSec');
+
+    $('statsMins').addEventListener('change', () => {
+      const arr = $('statsMins').value
+        .split(',')
+        .map((s) => parseInt(s, 10))
+        .filter((n) => Number.isFinite(n) && n > 0 && n <= 120);
+      if (arr.length) window.api.setSettings({ statsShowMinutes: arr });
+    });
     num('scalePct');
     num('opacityPct');
 

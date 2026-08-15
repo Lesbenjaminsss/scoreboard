@@ -366,11 +366,85 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 100px;
 }
 
 .g-chip-min {
   color: rgba(255, 255, 255, 0.75);
   font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.g-chip-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.g-chip-top {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.g-chip-assist {
+  font-size: 9px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.55);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+
+.goal-chip {
+  align-items: center;
+}
+
+/* ---------- penalties (transient flash under the team that won it) ---------- */
+
+.pen-flash {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 2px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+}
+
+.pen-flash.hidden {
+  display: none;
+}
+
+.pen-flash.scored {
+  color: #ffb74d;
+  background: rgba(255, 152, 0, 0.16);
+  border: 1px solid rgba(255, 152, 0, 0.5);
+}
+
+.pen-flash.missed {
+  color: #ff8a80;
+  background: rgba(255, 82, 82, 0.16);
+  border: 1px solid rgba(255, 82, 82, 0.5);
+}
+
+.pen-flash.in {
+  animation: chipIn 0.4s ease-out;
+}
+
+@keyframes chipIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* ---------- cards (shown as badges stacked on the crest) ---------- */
@@ -801,6 +875,163 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+.goal-assist {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 260px;
+}
+
+/* ---------- player substitution popup ---------- */
+
+.sub-panel {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 7;
+  pointer-events: none;
+  opacity: var(--opacity, 1);
+}
+
+.sub-panel.hidden {
+  display: none;
+}
+
+.sub-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 18px 12px;
+  background: linear-gradient(180deg, rgba(18, 24, 48, 0.96), rgba(10, 14, 30, 0.98));
+  border: 1px solid rgba(120, 160, 255, 0.45);
+  border-radius: 14px;
+  box-shadow:
+    0 14px 40px rgba(0, 0, 0, 0.6),
+    0 0 34px -6px #6e8bff;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.sub-panel.show .sub-inner {
+  animation: subIn 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes subIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.92);
+  }
+  55% {
+    transform: translateY(-3px) scale(1.02);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.sub-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  margin-bottom: 2px;
+}
+
+.sub-title {
+  color: #6e8bff;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  text-shadow: 0 0 10px #6e8bff;
+}
+
+.sub-team {
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sub-min {
+  margin-left: auto;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.sub-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.sub-photo-wrap {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid rgba(110, 139, 255, 0.6);
+  box-shadow: 0 0 10px rgba(110, 139, 255, 0.4);
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.sub-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.sub-photo-wrap .img-fallback {
+  position: absolute;
+  inset: 0;
+  font-size: 14px;
+  background: linear-gradient(160deg, #24306b, #101a3f);
+}
+
+.sub-photo-wrap .img-fallback.show {
+  display: flex;
+}
+
+.sub-arrow {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 900;
+  width: 14px;
+  text-align: center;
+}
+
+.sub-arrow.up {
+  color: #69f0ae;
+  text-shadow: 0 0 8px #69f0ae;
+}
+
+.sub-arrow.down {
+  color: #ff8a80;
+  text-shadow: 0 0 8px #ff8a80;
+}
+
+.sub-name {
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 240px;
+}
+
 .stats-head {
   display: flex;
   align-items: baseline;
@@ -896,3 +1127,4 @@ body {
   text-align: center;
   padding: 10px 0;
 }
+

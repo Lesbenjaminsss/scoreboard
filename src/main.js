@@ -22,7 +22,7 @@ let lastError = null;
 
 const DEFAULTS = {
   cycleInterval: 8000,
-  pollInterval: 15000,
+  pollInterval: 5000,
   scale: 1.0,
   opacity: 1.0,
   position: 'bottom',
@@ -31,6 +31,9 @@ const DEFAULTS = {
   showVersion: false,
   versionPosition: 'bottom-left',
   overlayVisible: true,
+  statsShowSec: 12,
+  statsHalfShowSec: 20,
+  statsShowMinutes: [20, 40, 60, 80],
   selectedLeagueId: null,
   selectedMatchIds: [],
   favoriteLeagueIds: [],
@@ -94,8 +97,28 @@ async function attachMatchEvents(m) {
     const home = [];
     const away = [];
     const goals = [];
+    const penalties = [];
+    const subs = [];
     for (const e of raw) {
       if (!e || !e.type) continue;
+      if (e.type === 'substitute') {
+        const side = e.position === 'home' || e.position === 'away' ? e.position : null;
+        if (side) {
+          const inId = String(e.playerUrl || '').replace(/\/+$/, '').split('/').pop() || null;
+          const outId = String(e.playerOutUrl || '').replace(/\/+$/, '').split('/').pop() || null;
+          subs.push({
+            key: `${e.timeMin}|${e.periodId}|${side}|${e.playerName || ''}|${e.playerOutName || ''}`,
+            minute: e.timeMin != null ? String(e.timeMin) : '',
+            periodId: e.periodId,
+            position: side,
+            playerIn: e.playerName || '',
+            playerOut: e.playerOutName || '',
+            inPhoto: inId ? `https://file.mackolikfeeds.com/people/${inId}` : null,
+            outPhoto: outId ? `https://file.mackolikfeeds.com/people/${outId}` : null,
+          });
+        }
+        continue;
+      }
       if (e.type === 'goal') {
         const pid = String(e.playerUrl || '').replace(/\/+$/, '').split('/').pop() || null;
         goals.push({
@@ -104,28 +127,51 @@ async function attachMatchEvents(m) {
           periodId: e.periodId,
           position: e.position === 'home' || e.position === 'away' ? e.position : null,
           playerName: e.playerName || '',
+          assist: e.assistPlayerName || null,
+          pen: String(e.subType).toLowerCase() === 'penalty-goal',
           photo: pid ? `https://file.mackolikfeeds.com/people/${pid}` : null,
+        });
+        if (String(e.subType).toLowerCase() === 'penalty-goal') {
+          penalties.push({
+            key: `${e.timeMin}|${e.periodId}|${e.position}|penalty-goal`,
+            minute: e.timeMin != null ? String(e.timeMin) : '',
+            position: e.position === 'home' || e.position === 'away' ? e.position : null,
+            scored: true,
+          });
+        }
+        continue;
+      }
+      if (e.type === 'card') {
+        const side = e.position === 'home' || e.position === 'away' ? e.position : null;
+        if (!side) continue;
+        const kind = e.subType === 'rc' || e.subType === 'y2rc' ? 'rc' : 'yc';
+        (side === 'home' ? home : away).push({
+          kind,
+          minute: e.timeMin != null ? String(e.timeMin) : '',
         });
         continue;
       }
-      if (e.type !== 'card') continue;
-      const side = e.position === 'home' || e.position === 'away' ? e.position : null;
-      if (!side) continue;
-      const kind = e.subType === 'rc' || e.subType === 'y2rc' ? 'rc' : 'yc';
-      (side === 'home' ? home : away).push({
-        kind,
-        minute: e.timeMin != null ? String(e.timeMin) : '',
-      });
+      if (String(e.type).toLowerCase().startsWith('penalty')) {
+        const side = e.position === 'home' || e.position === 'away' ? e.position : null;
+        if (side) {
+          penalties.push({
+            key: `${e.timeMin}|${e.periodId}|${e.position}|${e.type}`,
+            minute: e.timeMin != null ? String(e.timeMin) : '',
+            position: side,
+            scored: false,
+          });
+        }
+      }
     }
-    m.events = { home, away, goals };
+    m.events = { home, away, goals, penalties, subs };
   } catch (e) {
-    m.events = m.events || { home: [], away: [], goals: [] };
+    m.events = m.events || { home: [], away: [], goals: [], penalties: [], subs: [] };
   }
 }
 
 function schedulePoll() {
   clearTimeout(pollTimer);
-  pollTimer = setTimeout(poll, Math.max(5000, Number(settings.pollInterval) || 15000));
+  pollTimer = setTimeout(poll, Math.max(5000, Number(settings.pollInterval) || 5000));
 }
 
 function buildOverlayState() {
@@ -143,6 +189,7 @@ function buildOverlayState() {
       statusBoxContent: m.statusBoxContent,
       periodId: m.periodId,
       periodStart: m.periodStart,
+      lastUpdated: m.lastUpdated,
       isLive: m.isLive,
       minute: m.minute,
       clockLabel: m.clockLabel,
@@ -152,7 +199,7 @@ function buildOverlayState() {
       competitionLogo: m.competitionLogo,
       iddaaCode: m.iddaaCode,
       matchSlug: m.matchSlug,
-      events: m.events || { home: [], away: [] },
+      events: m.events || { home: [], away: [], goals: [], penalties: [], subs: [] },
       style: getLeagueStyle({
         id: m.competitionId,
         name: m.competitionName,
@@ -170,6 +217,9 @@ function buildOverlayState() {
       showVersion: settings.showVersion,
       versionPosition: settings.versionPosition,
       overlayVisible: settings.overlayVisible,
+      statsShowSec: settings.statsShowSec,
+      statsHalfShowSec: settings.statsHalfShowSec,
+      statsShowMinutes: settings.statsShowMinutes,
     },
     updatedAt: data ? data.updatedAt : null,
     error: lastError,
@@ -568,7 +618,8 @@ async function runSmoke() {
           match: candidate.home.name + ' vs ' + candidate.away.name,
           home: fmt(cards.home),
           away: fmt(cards.away),
-          goals: ((lastEvents && lastEvents.goals) || []).map((g) => g.playerName + " " + g.minute + "'" + (g.photo ? " [photo]" : "")),
+          goals: ((lastEvents && lastEvents.goals) || []).map((g) => g.playerName + " " + g.minute + "'" + (g.photo ? " [photo]" : "") + (g.assist ? " [asist:" + g.assist + "]" : "")),
+          penalties: ((lastEvents && lastEvents.penalties) || []).map((p) => (p.scored ? "pen" : "pm") + " " + p.minute + "' " + p.position),
         };
         await wait(3500);
         const ovlCards = await overlayWin.webContents.executeJavaScript(`({
@@ -576,6 +627,7 @@ async function runSmoke() {
           awayCards: document.getElementById('awayCards').querySelectorAll('.card').length,
           homeGoals: document.getElementById('homeGoals').querySelectorAll('.goal-chip').length,
           awayGoals: document.getElementById('awayGoals').querySelectorAll('.goal-chip').length,
+          goalChipName: document.querySelector('.goal-chip .g-chip-name') ? document.querySelector('.goal-chip .g-chip-name').textContent : '',
           sample: document.querySelector('.card') ? document.querySelector('.card').className : '',
         })`);
         report.overlay = ovlCards;
@@ -607,6 +659,54 @@ async function runSmoke() {
     console.log('STATS ' + JSON.stringify(statsInfo));
   } catch (e) {
     console.log('STATS_ERR ' + String(e));
+  }
+
+  // Verify substitution events (out/in players) can be fetched and rendered in
+  // the overlay substitution popup for a live match.
+  try {
+    const liveMatches = await controlWin.webContents.executeJavaScript(
+      `window.api.getState().then((s) => s.matches.filter((m) => m.isLive))`
+    );
+    let report = null;
+    for (const candidate of (liveMatches || []).slice(0, 5)) {
+      const raw = await fetchMatchEvents(candidate.id);
+      const sub = (raw || []).find((e) => e && e.type === 'substitute');
+      if (!sub) continue;
+      const inId = String(sub.playerUrl || '').replace(/\/+$/, '').split('/').pop() || null;
+      const outId = String(sub.playerOutUrl || '').replace(/\/+$/, '').split('/').pop() || null;
+      const mObj = { id: candidate.id, home: { name: candidate.home.name }, away: { name: candidate.away.name } };
+      const subObj = {
+        position: sub.position === 'home' || sub.position === 'away' ? sub.position : 'away',
+        minute: String(sub.timeMin != null ? sub.timeMin : ''),
+        playerIn: sub.playerName || '',
+        playerOut: sub.playerOutName || '',
+        inPhoto: inId ? `https://file.mackolikfeeds.com/people/${inId}` : null,
+        outPhoto: outId ? `https://file.mackolikfeeds.com/people/${outId}` : null,
+      };
+      await controlWin.webContents.executeJavaScript(
+        `window.api.setSelectedMatches([${JSON.stringify(candidate.id)}])`
+      );
+      await wait(500);
+      await overlayWin.webContents.executeJavaScript(
+        `window.__scoreboardDebug.showSubPopup(${JSON.stringify(mObj)}, ${JSON.stringify(subObj)})`
+      );
+      await wait(1500);
+      const ovl = await overlayWin.webContents.executeJavaScript(`({
+        panelHidden: document.getElementById('subPanel').classList.contains('hidden'),
+        team: document.getElementById('subTeam').textContent,
+        minute: document.getElementById('subMin').textContent,
+        inName: document.getElementById('subInName').textContent,
+        outName: document.getElementById('subOutName').textContent,
+        hasInPhoto: !!document.getElementById('subInPhoto').getAttribute('src'),
+        hasOutPhoto: !!document.getElementById('subOutPhoto').getAttribute('src'),
+      })`);
+      report = { match: candidate.home.name + ' vs ' + candidate.away.name, overlay: ovl };
+      break;
+    }
+    await controlWin.webContents.executeJavaScript(`window.api.setSelectedMatches([])`);
+    console.log('SUBS ' + JSON.stringify(report || { note: 'no-sub-events-found' }));
+  } catch (e) {
+    console.log('SUBS_ERR ' + String(e));
   }
 
   // Verify language switching updates the control panel UI end-to-end.

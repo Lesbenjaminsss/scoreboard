@@ -22,6 +22,8 @@
   const awayCards = document.getElementById('awayCards');
   const homeGoals = document.getElementById('homeGoals');
   const awayGoals = document.getElementById('awayGoals');
+  const homePenFlash = document.getElementById('homePenFlash');
+  const awayPenFlash = document.getElementById('awayPenFlash');
   const statsPanel = document.getElementById('statsPanel');
   const statsTitle = document.getElementById('statsTitle');
   const statsMatch = document.getElementById('statsMatch');
@@ -30,7 +32,15 @@
   const goalTag = document.getElementById('goalTag');
   const goalName = document.getElementById('goalName');
   const goalMin = document.getElementById('goalMin');
+  const goalAssist = document.getElementById('goalAssist');
   const goalPhoto = document.getElementById('goalPhoto');
+  const subPanel = document.getElementById('subPanel');
+  const subTeam = document.getElementById('subTeam');
+  const subMin = document.getElementById('subMin');
+  const subInPhoto = document.getElementById('subInPhoto');
+  const subInName = document.getElementById('subInName');
+  const subOutPhoto = document.getElementById('subOutPhoto');
+  const subOutName = document.getElementById('subOutName');
 
   let matches = [];
   let index = 0;
@@ -44,6 +54,9 @@
     language: 'tr',
     showVersion: false,
     versionPosition: 'bottom-left',
+    statsShowSec: 12,
+    statsHalfShowSec: 20,
+    statsShowMinutes: [20, 40, 60, 80],
   };
   let prevScores = {};
   let prevCardCounts = {};
@@ -61,34 +74,36 @@
 
   const VALID_POSITIONS = ['bottom', 'top', 'top-left', 'top-right', 'middle-left', 'middle-right'];
 
-  // Display clock. When the period has overrun its regular length while still
-  // live, show stoppage time like "45+2'" / "90+3'" (derived from periodStart).
-  function displayClock(m, now) {
+  // Clock: replicates the exact number mackolik's site displays for live
+  // matches: siteMinute = baseOffset + (lastUpdated - periodStart)/60000 with
+  // baseOffset 1 / 45 / 90 for the 1st half / 2nd half / extra time. The minute
+  // is computed from the feed's lastUpdated (never the local clock, which runs
+  // 60-90s ahead of the feed and made the overlay drift ~1 min in front).
+  function displayClock(m) {
     if (!m.isLive || m.status !== 'minutes' || !m.periodStart) return m.clockLabel;
-    const elapsed = Math.floor((now - m.periodStart) / 60000) + 1;
+    const ref = m.lastUpdated || Date.now();
+    const diff = Math.round((ref - m.periodStart) / 60000);
+    const minute = m.periodId === 1 ? 1 + diff : m.periodId === 2 ? 45 + diff : 90 + diff;
     if (m.periodId === 1) {
-      const plus = Math.min(9, elapsed - 45);
-      if (plus > 0) return `45+${plus}'`;
-      return `${Math.max(1, Math.min(45, elapsed))}'`;
+      if (minute > 45) return `45+${Math.min(9, minute - 45)}'`;
+      return `${minute}'`;
     }
     if (m.periodId === 2) {
-      const plus = Math.min(9, elapsed - 45);
-      if (plus > 0) return `90+${plus}'`;
-      return `${Math.max(46, Math.min(90, 45 + elapsed))}'`;
+      if (minute > 90) return `90+${Math.min(9, minute - 90)}'`;
+      return `${minute}'`;
     }
-    const plus = Math.min(9, elapsed - 30);
-    if (plus > 0) return `120+${plus}'`;
-    return `${Math.max(91, Math.min(120, 90 + elapsed))}'`;
+    if (minute > 120) return `120+${Math.min(9, minute - 120)}'`;
+    return `${minute}'`;
   }
 
   function numericMinute(m) {
     if (!m.isLive || m.status !== 'minutes' || !m.periodStart) return null;
-    const elapsed = Math.floor((Date.now() - m.periodStart) / 60000) + 1;
-    let min;
-    if (m.periodId === 1) min = Math.max(1, Math.min(45, elapsed));
-    else if (m.periodId === 2) min = Math.max(46, Math.min(90, 45 + elapsed));
-    else min = Math.max(91, Math.min(120, 90 + elapsed));
-    return min;
+    const ref = m.lastUpdated || Date.now();
+    const diff = Math.round((ref - m.periodStart) / 60000);
+    const minute = m.periodId === 1 ? 1 + diff : m.periodId === 2 ? 45 + diff : 90 + diff;
+    if (m.periodId === 1) return Math.max(1, Math.min(45, minute));
+    if (m.periodId === 2) return Math.max(46, Math.min(90, minute));
+    return Math.max(91, Math.min(120, minute));
   }
 
   function currentMatch() {
@@ -111,6 +126,9 @@
     const versionEl = document.getElementById('version');
     versionEl.classList.toggle('hidden', settings.showVersion !== true);
     versionEl.classList.toggle('pos-top', settings.versionPosition === 'top-left');
+
+    homeGoals.dataset.html = '';
+    awayGoals.dataset.html = '';
   }
 
   // ---------- rendering ----------
@@ -177,12 +195,13 @@
 
   function goalChipHtml(g) {
     const fb = escapeHtml(shortMark(g.playerName));
-    const name = escapeHtml(g.playerName || '');
+    const name = escapeHtml((g.pen ? '(P) ' : '') + (g.playerName || ''));
     const min = escapeHtml(g.minute || '');
+    const assist = g.assist ? `<span class="g-chip-assist">${escapeHtml(t('assistLabel'))}: ${escapeHtml(g.assist)}</span>` : '';
     const photo = g.photo
       ? `<img class="g-chip-photo" alt="" src="${escapeHtml(g.photo)}" /><span class="g-chip-fb">${fb}</span>`
       : `<span class="g-chip-fb show">${fb}</span>`;
-    return `<span class="goal-chip">${photo}<span class="g-chip-name">${name}</span><span class="g-chip-min">${min}'</span></span>`;
+    return `<span class="goal-chip">${photo}<span class="g-chip-body"><span class="g-chip-top"><span class="g-chip-name">${name}</span><span class="g-chip-min">${min}'</span></span>${assist}</span></span>`;
   }
 
   function wireGoalChipImgs(container) {
@@ -251,11 +270,13 @@
     prevScores[m.id] = key;
 
     checkGoals(m);
+    checkPenalties(m);
+    checkSubs(m);
 
     if (m.isLive) {
       liveEl.classList.remove('off');
       liveText.textContent = t('LIVE');
-      clockEl.textContent = displayClock(m, Date.now());
+      clockEl.textContent = displayClock(m);
     } else if (m.state === 'post') {
       liveEl.classList.add('off');
       liveText.textContent = t('FINISHED');
@@ -397,7 +418,8 @@
       }
       renderStatsPanel(m, json.stats, isHalftime);
       clearTimeout(statsTimer);
-      statsTimer = setTimeout(() => statsPanel.classList.add('hidden'), isHalftime ? 20000 : 12000);
+      const showMs = (isHalftime ? settings.statsHalfShowSec : settings.statsShowSec) || (isHalftime ? 20 : 12);
+      statsTimer = setTimeout(() => statsPanel.classList.add('hidden'), showMs * 1000);
     } catch (e) {
       statsPanel.classList.add('hidden');
     } finally {
@@ -412,7 +434,10 @@
   function maybeStatsMilestone(m) {
     if (!m || !m.isLive) return;
     const min = numericMinute(m);
-    if (min != null && min >= 20 && min <= 90 && min % 20 === 0) {
+    const minutes = Array.isArray(settings.statsShowMinutes) && settings.statsShowMinutes.length
+      ? settings.statsShowMinutes
+      : [20, 40, 60, 80];
+    if (min != null && min >= 1 && minutes.includes(min)) {
       if (lastStatsMinute[m.id] !== min) {
         lastStatsMinute[m.id] = min;
         showStats(m, false);
@@ -433,8 +458,9 @@
 
   function showGoalPopup(m, goal) {
     goalTag.textContent = t('goalTag');
-    goalName.textContent = goal.playerName || '';
+    goalName.textContent = (goal.pen ? '(P) ' : '') + (goal.playerName || '');
     goalMin.textContent = goal.minute ? `${goal.minute}'` : '';
+    goalAssist.textContent = goal.assist ? `${t('assistLabel')}: ${goal.assist}` : '';
     setImg(goalPhoto, goal.photo, shortMark(goal.playerName));
     goalPanel.classList.remove('hidden');
     goalPanel.classList.remove('show');
@@ -458,6 +484,74 @@
       }
     }
     if (fresh) showGoalPopup(m, fresh);
+  }
+
+  // ---------- transient penalty indicator ----------
+
+  const seenPenalties = {};
+  let penFlashTimer = null;
+
+  function showPenFlash(side, penalty) {
+    const el = side === 'home' ? homePenFlash : awayPenFlash;
+    el.textContent = `${t('penaltyTag')} ${penalty.minute || ''}'`;
+    el.className = 'pen-flash ' + (penalty.scored ? 'scored' : 'missed');
+    el.classList.remove('hidden', 'in');
+    void el.offsetWidth;
+    el.classList.add('in');
+    clearTimeout(penFlashTimer);
+    penFlashTimer = setTimeout(() => el.classList.add('hidden'), 6000);
+  }
+
+  function checkPenalties(m) {
+    if (!m || !m.isLive) return;
+    const pens = (m.events && m.events.penalties) || [];
+    if (!pens.length) return;
+    const seen = seenPenalties[m.id] || (seenPenalties[m.id] = new Set());
+    let fresh = null;
+    for (const p of pens) {
+      if (p.key && !seen.has(p.key)) {
+        seen.add(p.key);
+        fresh = p;
+      }
+    }
+    if (fresh) showPenFlash(fresh.position, fresh);
+  }
+
+  // ---------- substitution popup ----------
+
+  const seenSubs = {};
+  let subTimer = null;
+
+  function showSubPopup(m, sub) {
+    const teamName = sub.position === 'home' ? m.home.name : sub.position === 'away' ? m.away.name : '';
+    subTeam.textContent = teamName ? teamName.toUpperCase() : '';
+    subMin.textContent = sub.minute ? `${sub.minute}'` : '';
+    subInName.textContent = sub.playerIn || '';
+    subOutName.textContent = sub.playerOut || '';
+    setImg(subInPhoto, sub.inPhoto, shortMark(sub.playerIn));
+    setImg(subOutPhoto, sub.outPhoto, shortMark(sub.playerOut));
+    subPanel.classList.remove('hidden');
+    subPanel.classList.remove('show');
+    void subPanel.offsetWidth;
+    subPanel.classList.add('show');
+    anchorPanel(subPanel);
+    clearTimeout(subTimer);
+    subTimer = setTimeout(() => subPanel.classList.add('hidden'), 6000);
+  }
+
+  function checkSubs(m) {
+    if (!m || !m.isLive) return;
+    const subs = (m.events && m.events.subs) || [];
+    if (!subs.length) return;
+    const seen = seenSubs[m.id] || (seenSubs[m.id] = new Set());
+    let fresh = null;
+    for (const s of subs) {
+      if (s.key && !seen.has(s.key)) {
+        seen.add(s.key);
+        fresh = s;
+      }
+    }
+    if (fresh) showSubPopup(m, fresh);
   }
 
   function triggerSwitchAnimation() {
@@ -520,7 +614,7 @@
   function tick() {
     const m = currentMatch();
     if (m && m.isLive) {
-      clockEl.textContent = displayClock(m, Date.now());
+      clockEl.textContent = displayClock(m);
       maybeStatsMilestone(m);
     }
   }
@@ -530,6 +624,7 @@
   let cycleTimer = null;
   function setupCycle() {
     if (cycleTimer) clearInterval(cycleTimer);
+    cycleTimer = null;
     const interval = Number(settings.cycleInterval) || 0;
     if (interval > 0 && matches.length > 1) {
       cycleTimer = setInterval(() => goTo(index + 1), interval);
@@ -543,4 +638,9 @@
   fetchState();
   setupCycle();
   setInterval(tick, 1000);
+
+  // Test/debug hook used by the --smoke run.
+  window.__scoreboardDebug = {
+    showSubPopup: showSubPopup,
+  };
 })();
