@@ -22,7 +22,7 @@ Oyun oynarken ekranın üstünde saydam, tıklama-geçiren bir overlay olarak du
 - **Maç istatistikleri**: Her 20 dakikada bir ve **devre arasına girildiğinde** ekranın ortasında istatistik paneli açılır — topla oynama, toplam/isabetli pas, şut, korner, faul ve kartlar.
 - **Dil seçimi**: Kontrol panelinden arayüz **Türkçe** veya **English** olarak değiştirilebilir (kontrol paneli ve skorboard birlikte değişir).
 - **Konum seçimi**: Skorboard 6 konuma yerleştirilebilir — alt, üst, sol üst, sağ üst, sol orta, sağ orta.
-- **Sürüm rozeti**: İsteğe bağlı olarak ekranın sol altına veya sol üstüne `Scoreboard 0.01 Beta` etiketi gösterilebilir.
+- **Sürüm rozeti**: İsteğe bağlı olarak ekranın sol altına veya sol üstüne `Scoreboard 0.02 Beta` etiketi gösterilebilir.
 - **OBS uyumlu**: `http://127.0.0.1:3710/overlay` adresi OBS Browser Source'a eklenebilir.
 
 ### Çalıştırma
@@ -119,7 +119,7 @@ It sits on top of your screen as a transparent, click-through overlay while you 
 - **Match statistics**: Every 20 minutes and **when the half-time break starts**, a stats panel opens in the center of the screen — possession, total/accurate passes, shots, corners, fouls and cards.
 - **Language selection**: The interface can be switched between **Türkçe** and **English** from the control panel (control panel and scoreboard switch together).
 - **Position selection**: The scoreboard can be placed in 6 positions — bottom, top, top-left, top-right, middle-left, middle-right.
-- **Version badge**: Optionally show a `Scoreboard 0.01 Beta` label at the bottom-left or top-left of the screen.
+- **Version badge**: Optionally show a `Scoreboard 0.02 Beta` label at the bottom-left or top-left of the screen.
 - **OBS ready**: The address `http://127.0.0.1:3710/overlay` can be added as an OBS Browser Source.
 
 ### Running

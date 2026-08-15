@@ -196,9 +196,25 @@ const STAT_TAB_KEYS = ['general', 'distribution', 'attack', 'defence', 'discipli
 
 async function fetchMatchStats(matchId, matchSlug) {
   const url = `https://www.mackolik.com/mac/${encodeURIComponent(matchSlug || 'mac')}/istatistik/${encodeURIComponent(matchId)}`;
-  const res = await httpGet(url, 'https://www.mackolik.com/canli-sonuclar');
-  if (!res.ok) throw new Error(`Mackolik stats HTTP ${res.status}`);
-  return parseStatsHtml(await res.text());
+  let lastErr = null;
+  // The stats page occasionally returns a transient 502; retry a few times.
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      const res = await httpGet(url, 'https://www.mackolik.com/canli-sonuclar');
+      if (res.ok) {
+        const tabs = parseStatsHtml(await res.text());
+        const total = Object.values(tabs).reduce((n, a) => n + a.length, 0);
+        if (total > 0) return tabs;
+        lastErr = new Error('Mackolik stats empty');
+      } else {
+        lastErr = new Error(`Mackolik stats HTTP ${res.status}`);
+      }
+    } catch (e) {
+      lastErr = e;
+    }
+    await new Promise((r) => setTimeout(r, 1200 * (attempt + 1)));
+  }
+  throw lastErr || new Error('Mackolik stats failed');
 }
 
 function parseStatsHtml(html) {

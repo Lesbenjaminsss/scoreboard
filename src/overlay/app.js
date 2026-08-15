@@ -20,6 +20,8 @@
   const liveText = document.getElementById('liveText');
   const homeCards = document.getElementById('homeCards');
   const awayCards = document.getElementById('awayCards');
+  const homeGoals = document.getElementById('homeGoals');
+  const awayGoals = document.getElementById('awayGoals');
   const statsPanel = document.getElementById('statsPanel');
   const statsTitle = document.getElementById('statsTitle');
   const statsMatch = document.getElementById('statsMatch');
@@ -28,6 +30,7 @@
   const goalTag = document.getElementById('goalTag');
   const goalName = document.getElementById('goalName');
   const goalMin = document.getElementById('goalMin');
+  const goalPhoto = document.getElementById('goalPhoto');
 
   let matches = [];
   let index = 0;
@@ -112,21 +115,36 @@
 
   // ---------- rendering ----------
 
-  function setImg(el, src) {
+  function setImg(el, src, fb) {
+    const next = el.nextElementSibling;
+    const fbEl = next && next.classList.contains('img-fallback') ? next : null;
+    if (fbEl) fbEl.classList.remove('show');
     if (src) {
       el.onerror = () => {
         el.style.visibility = 'hidden';
+        if (fbEl) {
+          if (fb != null) fbEl.textContent = fb;
+          fbEl.classList.add('show');
+        }
       };
       el.src = src;
       el.style.visibility = 'visible';
     } else {
       el.removeAttribute('src');
       el.style.visibility = 'hidden';
+      if (fbEl) {
+        if (fb != null) fbEl.textContent = fb;
+        fbEl.classList.add('show');
+      }
     }
   }
 
+  function shortMark(name) {
+    return String(name || '').trim().charAt(0).toUpperCase() || '?';
+  }
+
   function setTeam(img, name, team) {
-    setImg(img, team && team.logo);
+    setImg(img, team && team.logo, team ? shortMark(team.name) : null);
     name.textContent = team ? team.name.toUpperCase() : '';
   }
 
@@ -157,6 +175,35 @@
     }
   }
 
+  function goalChipHtml(g) {
+    const fb = escapeHtml(shortMark(g.playerName));
+    const name = escapeHtml(g.playerName || '');
+    const min = escapeHtml(g.minute || '');
+    const photo = g.photo
+      ? `<img class="g-chip-photo" alt="" src="${escapeHtml(g.photo)}" /><span class="g-chip-fb">${fb}</span>`
+      : `<span class="g-chip-fb show">${fb}</span>`;
+    return `<span class="goal-chip">${photo}<span class="g-chip-name">${name}</span><span class="g-chip-min">${min}'</span></span>`;
+  }
+
+  function wireGoalChipImgs(container) {
+    container.querySelectorAll('.goal-chip img.g-chip-photo').forEach((img) => {
+      img.onerror = () => {
+        img.style.visibility = 'hidden';
+        const fb = img.nextElementSibling;
+        if (fb && fb.classList.contains('g-chip-fb')) fb.classList.add('show');
+      };
+    });
+  }
+
+  function renderGoals(container, goals, side) {
+    const list = (Array.isArray(goals) ? goals : []).filter((g) => g.position === side);
+    const html = list.map(goalChipHtml).join('');
+    if (container.dataset.html === html) return;
+    container.dataset.html = html;
+    container.innerHTML = html;
+    wireGoalChipImgs(container);
+  }
+
   function scoreKey(m) {
     return `${m.score.home}|${m.score.away}`;
   }
@@ -182,11 +229,13 @@
 
     renderCards(homeCards, m.events && m.events.home, m.id);
     renderCards(awayCards, m.events && m.events.away, m.id);
+    renderGoals(homeGoals, m.events && m.events.goals, 'home');
+    renderGoals(awayGoals, m.events && m.events.goals, 'away');
 
-    setImg(leagueLogo, m.competitionLogo);
+    setImg(leagueLogo, m.competitionLogo, shortMark(m.competitionName));
     leagueName.textContent = (m.competitionName || t('leaguePlaceholder')).toUpperCase();
 
-    setImg(midLogo, m.competitionLogo);
+    setImg(midLogo, m.competitionLogo, shortMark(m.competitionName));
 
     scoreHome.textContent = m.score.home !== '' && m.score.home != null ? m.score.home : '-';
     scoreAway.textContent = m.score.away !== '' && m.score.away != null ? m.score.away : '-';
@@ -386,6 +435,7 @@
     goalTag.textContent = t('goalTag');
     goalName.textContent = goal.playerName || '';
     goalMin.textContent = goal.minute ? `${goal.minute}'` : '';
+    setImg(goalPhoto, goal.photo, shortMark(goal.playerName));
     goalPanel.classList.remove('hidden');
     goalPanel.classList.remove('show');
     void goalPanel.offsetWidth;

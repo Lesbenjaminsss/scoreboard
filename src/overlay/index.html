@@ -7,22 +7,27 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div id="version" data-i18n="versionText">Scoreboard 0.01 Beta</div>
+    <div id="version" data-i18n="versionText">Scoreboard 0.02 Beta</div>
     <div id="stage">
       <div id="sb" class="hidden" data-pos="bottom">
         <div class="bar" id="bar">
           <div class="brand">
-            <div class="brand-logo-wrap"><img id="leagueLogo" class="brand-logo" alt="" draggable="false" /></div>
+            <div class="brand-logo-wrap">
+              <img id="leagueLogo" class="brand-logo" alt="" draggable="false" />
+              <span class="img-fallback" id="leagueLogoFb"></span>
+            </div>
             <div class="brand-name" id="leagueName">LİG</div>
           </div>
 
           <div class="team home">
             <div class="crest-wrap">
               <img id="homeCrest" class="crest" alt="" draggable="false" />
+              <span class="img-fallback" id="homeCrestFb"></span>
               <div class="cards" id="homeCards"></div>
             </div>
             <div class="team-info">
               <span id="homeName" class="tname">EV</span>
+              <div class="goals" id="homeGoals"></div>
             </div>
           </div>
 
@@ -34,6 +39,7 @@
             </div>
             <div class="sub">
               <img id="midLogo" class="mid-logo" alt="" draggable="false" />
+              <span class="img-fallback mid" id="midLogoFb"></span>
               <span id="clock" class="clock">00:00</span>
               <span class="live"><span class="livedot"></span><span id="liveText">CANLI</span></span>
             </div>
@@ -42,9 +48,11 @@
           <div class="team away">
             <div class="team-info">
               <span id="awayName" class="tname">DEP</span>
+              <div class="goals" id="awayGoals"></div>
             </div>
             <div class="crest-wrap">
               <img id="awayCrest" class="crest" alt="" draggable="false" />
+              <span class="img-fallback" id="awayCrestFb"></span>
               <div class="cards" id="awayCards"></div>
             </div>
           </div>
@@ -71,7 +79,10 @@
 
       <div id="goalPanel" class="goal-panel hidden">
         <div class="goal-inner">
-          <span class="goal-ball">⚽</span>
+          <div class="goal-photo-wrap">
+            <img id="goalPhoto" class="goal-photo" alt="" draggable="false" />
+            <span class="img-fallback" id="goalPhotoFb"></span>
+          </div>
           <div class="goal-body">
             <span class="goal-tag" id="goalTag">GOL</span>
             <span class="goal-name" id="goalName"></span>

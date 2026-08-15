@@ -97,12 +97,14 @@ async function attachMatchEvents(m) {
     for (const e of raw) {
       if (!e || !e.type) continue;
       if (e.type === 'goal') {
+        const pid = String(e.playerUrl || '').replace(/\/+$/, '').split('/').pop() || null;
         goals.push({
           key: `${e.timeMin}|${e.periodId}|${e.position}|${e.playerName || ''}|${e.score || ''}`,
           minute: e.timeMin != null ? String(e.timeMin) : '',
           periodId: e.periodId,
           position: e.position === 'home' || e.position === 'away' ? e.position : null,
           playerName: e.playerName || '',
+          photo: pid ? `https://file.mackolikfeeds.com/people/${pid}` : null,
         });
         continue;
       }
@@ -566,12 +568,14 @@ async function runSmoke() {
           match: candidate.home.name + ' vs ' + candidate.away.name,
           home: fmt(cards.home),
           away: fmt(cards.away),
-          goals: ((lastEvents && lastEvents.goals) || []).map((g) => g.playerName + " " + g.minute + "'"),
+          goals: ((lastEvents && lastEvents.goals) || []).map((g) => g.playerName + " " + g.minute + "'" + (g.photo ? " [photo]" : "")),
         };
         await wait(3500);
         const ovlCards = await overlayWin.webContents.executeJavaScript(`({
           homeCards: document.getElementById('homeCards').querySelectorAll('.card').length,
           awayCards: document.getElementById('awayCards').querySelectorAll('.card').length,
+          homeGoals: document.getElementById('homeGoals').querySelectorAll('.goal-chip').length,
+          awayGoals: document.getElementById('awayGoals').querySelectorAll('.goal-chip').length,
           sample: document.querySelector('.card') ? document.querySelector('.card').className : '',
         })`);
         report.overlay = ovlCards;
