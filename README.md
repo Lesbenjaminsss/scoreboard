@@ -1,7 +1,7 @@
 # Preview
 <img width="661" height="82" alt="Ekran Alıntısı" src="https://github.com/user-attachments/assets/bd490faf-ff93-4f67-a20d-2562b4e3b809" />
 <img width="683" height="171" alt="Ekran Alıntısı2" src="https://github.com/user-attachments/assets/3b62b4da-c0b4-405f-9a6c-38c0f666de15" />
-
+<img width="662" height="496" alt="Ekran Alıntısı3" src="https://github.com/user-attachments/assets/36d817df-6cb8-4405-a9f1-df26c6ee8604" />
 
 
 
