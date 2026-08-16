@@ -275,6 +275,88 @@ function parseStatsHtml(html) {
   return tabs;
 }
 
+// ---------------------------------------------------------------------------
+// Starting lineups (server-rendered on the match page)
+// ---------------------------------------------------------------------------
+const lineupCache = new Map(); // matchId -> { fetchedAt, data }
+
+function parseLineupRow(rowHtml) {
+  const idM = rowHtml.match(/data-person-id="([^"]+)"/);
+  const photoM = rowHtml.match(/data-lazy="([^"]*)"/);
+  const numM = rowHtml.match(/widget-match-stats__cell--shirt-number">\s*([0-9]{1,3})\s*</);
+  const posM = rowHtml.match(/<abbr title="([^"]*)">\s*([\s\S]*?)\s*<\/abbr>/);
+  const nameM = rowHtml.match(/<a class="widget-match-stats__person-name" href="([^"]*)"[^>]*>\s*([\s\S]*?)\s*<\/a>/);
+  return {
+    playerId: idM ? idM[1] : null,
+    number: numM ? parseInt(numM[1], 10) : null,
+    position: posM ? posM[1].trim() : '',
+    positionShort: posM ? posM[2].replace(/<[^>]+>/g, '').trim() : '',
+    name: nameM ? nameM[2].replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').trim() : '',
+    url: nameM ? nameM[1] : null,
+    photo: photoM && photoM[1] ? photoM[1] : null,
+  };
+}
+
+function parseLineupHtml(html) {
+  const text = String(html);
+  const seIdx = text.indexOf('data-attribute="staring-eleven"');
+  if (seIdx === -1) throw new Error('Mackolik lineup section not found');
+  // The substitutions block comes right after the starting-11 lists.
+  const subIdx = text.indexOf('data-attribute="substitutions"', seIdx);
+  const region = text.slice(seIdx, subIdx === -1 ? text.length : subIdx);
+
+  const tablePlayers = (cls) => {
+    const tm = region.match(new RegExp(`<table class="widget-match-stats__team ${cls}">([\\s\\S]*?)<\\/table>`));
+    if (!tm) return [];
+    const players = [];
+    const rowRe = /<tr class="widget-match-stats__row"[^>]*>([\s\S]*?)<\/tr>/g;
+    let rm;
+    while ((rm = rowRe.exec(tm[1])) !== null) players.push(parseLineupRow(rm[1]));
+    return players;
+  };
+
+  const home = { formation: null, players: tablePlayers('widget-match-stats__team--home') };
+  const away = { formation: null, players: tablePlayers('widget-match-stats__team--away') };
+
+  // The pitch renders the home formation first, then the away one.
+  const formations = [];
+  const formRe = /class="Opta-TeamFormation"[^>]*>\s*([0-9-]+)\s*<\/div>/g;
+  let fm;
+  while ((fm = formRe.exec(region)) !== null && formations.length < 2) {
+    formations.push(fm[1].trim());
+  }
+  if (formations.length) home.formation = formations[0];
+  if (formations.length > 1) away.formation = formations[1];
+
+  return { home, away };
+}
+
+async function fetchMatchLineup(matchId, matchSlug) {
+  const cached = lineupCache.get(matchId);
+  if (cached && Date.now() - cached.fetchedAt < 5 * 60 * 1000) return cached.data;
+  const url = `https://www.mackolik.com/mac/${encodeURIComponent(matchSlug || 'mac')}/${encodeURIComponent(matchId)}`;
+  let lastErr = null;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      const res = await httpGet(url, 'https://www.mackolik.com/canli-sonuclar');
+      if (res.ok) {
+        const data = parseLineupHtml(await res.text());
+        if (data.home.players.length + data.away.players.length >= 22) {
+          lineupCache.set(matchId, { fetchedAt: Date.now(), data });
+          return data;
+        }
+        lastErr = new Error('Mackolik lineup incomplete');
+      } else {
+        lastErr = new Error(`Mackolik lineup HTTP ${res.status}`);
+      }
+    } catch (e) {
+      lastErr = e;
+    }
+    await new Promise((r) => setTimeout(r, 1200 * (attempt + 1)));
+  }
+  throw lastErr || new Error('Mackolik lineup failed');
+}
+
 function extractShirtNumber(html) {
   const m = String(html).match(/p0c-person-information__shirt-number">\s*([0-9]{1,2})\s*<\/span>/);
   return m ? parseInt(m[1], 10) : null;
@@ -347,4 +429,6 @@ module.exports = {
   resolvePlayerNumber,
   fetchMatchStats,
   parseStatsHtml,
+  fetchMatchLineup,
+  parseLineupHtml,
 };

@@ -1032,6 +1032,224 @@ body {
   max-width: 240px;
 }
 
+/* ---------- starting eleven drop-down panel ---------- */
+
+.lineup-panel {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 6;
+  pointer-events: none;
+  opacity: var(--opacity, 1);
+}
+
+.lineup-panel.hidden {
+  display: none;
+}
+
+.lineup-inner {
+  width: 100%;
+  padding: 14px 16px 16px;
+  background: linear-gradient(180deg, rgba(16, 12, 30, 0.97), rgba(8, 6, 18, 0.99));
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-top: none;
+  border-radius: 0 0 16px 16px;
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.65),
+    0 0 40px -8px var(--accent, #38003c);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.lineup-panel.show .lineup-inner {
+  animation: lineupIn 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes lineupIn {
+  from {
+    opacity: 0;
+    transform: translateY(-14px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.lineup-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  margin-bottom: 12px;
+}
+
+.lineup-title {
+  color: var(--accent2, #00ff87);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  text-shadow: 0 0 10px var(--accent2, #00ff87);
+}
+
+.lineup-match {
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 12.5px;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lineup-cols {
+  display: flex;
+  gap: 18px;
+}
+
+.lineup-col {
+  flex: 1;
+  min-width: 0;
+}
+
+.lineup-divider {
+  width: 1px;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.12);
+  margin: 2px 0;
+}
+
+.lineup-team {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 8px;
+}
+
+.lineup-crest-wrap {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.lineup-crest {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.lineup-crest-wrap .img-fallback {
+  position: absolute;
+  inset: 0;
+  font-size: 12px;
+}
+
+.lineup-crest-wrap .img-fallback.show {
+  display: flex;
+}
+
+.lineup-tname {
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.lineup-formation {
+  margin-left: auto;
+  color: var(--accent2, #00ff87);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.lineup-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.lineup-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.lineup-num {
+  width: 24px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 11.5px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.lineup-photo-wrap {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.lineup-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.lineup-photo-wrap .img-fallback {
+  position: absolute;
+  inset: 0;
+  font-size: 10px;
+  background: linear-gradient(160deg, #24306b, #101a3f);
+}
+
+.lineup-photo-wrap .img-fallback.show {
+  display: flex;
+}
+
+.lineup-pname {
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.lineup-pos {
+  margin-left: auto;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  flex-shrink: 0;
+}
+
 .stats-head {
   display: flex;
   align-items: baseline;

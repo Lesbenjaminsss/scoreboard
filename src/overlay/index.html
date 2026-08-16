@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div id="version" data-i18n="versionText">Scoreboard 0.03 Beta</div>
+    <div id="version" data-i18n="versionText">Scoreboard 0.04 Beta</div>
     <div id="stage">
       <div id="sb" class="hidden" data-pos="bottom">
         <div class="bar" id="bar">
@@ -116,6 +116,40 @@
             </div>
             <span class="sub-arrow down">▼</span>
             <span id="subOutName" class="sub-name">–</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="lineupPanel" class="lineup-panel hidden">
+        <div class="lineup-inner">
+          <div class="lineup-head">
+            <span class="lineup-title" id="lineupTitle" data-i18n="lineupTitle">İLK 11</span>
+            <span id="lineupMatch" class="lineup-match"></span>
+          </div>
+          <div class="lineup-cols">
+            <div class="lineup-col">
+              <div class="lineup-team">
+                <span class="lineup-crest-wrap">
+                  <img id="lineupHomeCrest" class="lineup-crest" alt="" draggable="false" />
+                  <span class="img-fallback" id="lineupHomeCrestFb"></span>
+                </span>
+                <span id="lineupHomeName" class="lineup-tname"></span>
+                <span id="lineupHomeFormation" class="lineup-formation"></span>
+              </div>
+              <div id="lineupHomeBody" class="lineup-body"></div>
+            </div>
+            <div class="lineup-divider"></div>
+            <div class="lineup-col">
+              <div class="lineup-team">
+                <span class="lineup-crest-wrap">
+                  <img id="lineupAwayCrest" class="lineup-crest" alt="" draggable="false" />
+                  <span class="img-fallback" id="lineupAwayCrestFb"></span>
+                </span>
+                <span id="lineupAwayName" class="lineup-tname"></span>
+                <span id="lineupAwayFormation" class="lineup-formation"></span>
+              </div>
+              <div id="lineupAwayBody" class="lineup-body"></div>
+            </div>
           </div>
         </div>
       </div>

@@ -4,7 +4,7 @@ const { app, BrowserWindow, ipcMain, globalShortcut, screen } = require('electro
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const { fetchAndParseDay, fetchMatchEvents, fetchMatchStats } = require('./mackolik');
+const { fetchAndParseDay, fetchMatchEvents, fetchMatchStats, fetchMatchLineup } = require('./mackolik');
 const { getLeagueStyle } = require('./leagues');
 
 const PORT_START = 3710;
@@ -348,6 +348,24 @@ async function handleStatsApi(req, res) {
   }
 }
 
+let lineupBusy = false;
+
+async function handleLineupApi(req, res) {
+  const id = new URL(req.url, 'http://localhost').searchParams.get('id');
+  if (!id) return sendJson(res, { id: null, lineup: null });
+  if (lineupBusy) return sendJson(res, { id, lineup: null, busy: true });
+  lineupBusy = true;
+  try {
+    const m = data && data.matches.get(id);
+    const lineup = m && m.matchSlug ? await fetchMatchLineup(m.id, m.matchSlug) : null;
+    sendJson(res, { id, lineup });
+  } catch (e) {
+    sendJson(res, { id, lineup: null, error: String((e && e.message) || e) });
+  } finally {
+    lineupBusy = false;
+  }
+}
+
 function startServer() {
   return new Promise((resolve, reject) => {
     const srv = http.createServer((req, res) => {
@@ -356,6 +374,7 @@ function startServer() {
       if (urlPath === '/api/settings') return sendJson(res, settings);
       if (urlPath === '/api/health') return sendJson(res, { ok: true });
       if (urlPath === '/api/stats') return handleStatsApi(req, res);
+      if (urlPath === '/api/lineup') return handleLineupApi(req, res);
       return serveStatic(req, res);
     });
     srv.on('error', (err) => {
@@ -659,6 +678,61 @@ async function runSmoke() {
     console.log('STATS ' + JSON.stringify(statsInfo));
   } catch (e) {
     console.log('STATS_ERR ' + String(e));
+  }
+
+  // Verify starting lineups can be fetched and rendered in the overlay.
+  try {
+    const liveMatches = await controlWin.webContents.executeJavaScript(
+      `window.api.getState().then((s) => s.matches.filter((m) => m.isLive))`
+    );
+    let report = null;
+    for (const candidate of (liveMatches || []).slice(0, 5)) {
+      let lineup = null;
+      try {
+        lineup = await fetchMatchLineup(candidate.id, candidate.matchSlug);
+      } catch (e) {
+        continue;
+      }
+      const fmt = (side) => ({
+        formation: side.formation,
+        count: side.players.length,
+        first: side.players.slice(0, 3).map((p) => p.number + ' ' + p.name + ' ' + p.positionShort),
+        sample: side.players[0]
+          ? { name: side.players[0].name, photo: !!side.players[0].photo, url: !!side.players[0].url }
+          : null,
+      });
+      report = {
+        match: candidate.home.name + ' vs ' + candidate.away.name,
+        home: fmt(lineup.home),
+        away: fmt(lineup.away),
+      };
+      const mObj = { id: candidate.id, home: candidate.home, away: candidate.away };
+      await controlWin.webContents.executeJavaScript(
+        `window.api.setSelectedMatches([${JSON.stringify(candidate.id)}])`
+      );
+      await wait(500);
+      await overlayWin.webContents.executeJavaScript(
+        `window.__scoreboardDebug.renderLineup(${JSON.stringify(mObj)}, ${JSON.stringify(lineup)})`
+      );
+      await wait(1200);
+      const ovl = await overlayWin.webContents.executeJavaScript(`({
+        panelHidden: document.getElementById('lineupPanel').classList.contains('hidden'),
+        title: document.getElementById('lineupTitle').textContent,
+        homeRows: document.querySelectorAll('#lineupHomeBody .lineup-row').length,
+        awayRows: document.querySelectorAll('#lineupAwayBody .lineup-row').length,
+        homeFirst: document.querySelector('#lineupHomeBody .lineup-row .lineup-pname')
+          ? document.querySelector('#lineupHomeBody .lineup-row .lineup-pname').textContent
+          : '',
+        homeFormation: document.getElementById('lineupHomeFormation').textContent,
+        awayFormation: document.getElementById('lineupAwayFormation').textContent,
+      })`);
+      report.overlay = ovl;
+      break;
+    }
+    await controlWin.webContents.executeJavaScript(`window.api.setSelectedMatches([])`);
+    console.log('LINEUP ' + JSON.stringify(report || { note: 'no-lineup-found' }));
+  } catch (e) {
+    console.log('LINEUP_ERR ' + String(e));
   }
 
   // Verify substitution events (out/in players) can be fetched and rendered in

@@ -41,6 +41,16 @@
   const subInName = document.getElementById('subInName');
   const subOutPhoto = document.getElementById('subOutPhoto');
   const subOutName = document.getElementById('subOutName');
+  const lineupPanel = document.getElementById('lineupPanel');
+  const lineupMatch = document.getElementById('lineupMatch');
+  const lineupHomeCrest = document.getElementById('lineupHomeCrest');
+  const lineupHomeName = document.getElementById('lineupHomeName');
+  const lineupHomeFormation = document.getElementById('lineupHomeFormation');
+  const lineupHomeBody = document.getElementById('lineupHomeBody');
+  const lineupAwayCrest = document.getElementById('lineupAwayCrest');
+  const lineupAwayName = document.getElementById('lineupAwayName');
+  const lineupAwayFormation = document.getElementById('lineupAwayFormation');
+  const lineupAwayBody = document.getElementById('lineupAwayBody');
 
   let matches = [];
   let index = 0;
@@ -230,6 +240,7 @@
   function render() {
     const m = currentMatch();
     if (!m) {
+      hideLineup();
       sb.classList.add('hidden');
       empty.classList.remove('hidden');
       bar.classList.remove('in', 'switching');
@@ -237,6 +248,8 @@
     }
     empty.classList.add('hidden');
     sb.classList.remove('hidden');
+
+    if (lineupPanelMatch && lineupPanelMatch !== m.id) hideLineup();
 
     // league accent -> middle badge + glow
     const style = m.style || {};
@@ -272,6 +285,7 @@
     checkGoals(m);
     checkPenalties(m);
     checkSubs(m);
+    maybeShowLineup(m);
 
     if (m.isLive) {
       liveEl.classList.remove('off');
@@ -554,6 +568,110 @@
     if (fresh) showSubPopup(m, fresh);
   }
 
+  // ---------- starting eleven drop-down panel ----------
+
+  // Anchor the panel as a drop-down attached under the scoreboard bar. If there
+  // is no room below (bar near the screen bottom), flip it above instead.
+  function anchorLineup(panel) {
+    const r = bar.getBoundingClientRect();
+    if (!r.width) return;
+    const gap = 2;
+    const vh = window.innerHeight;
+    const vw = window.innerWidth;
+    let top = r.bottom + gap;
+    const h = panel.offsetHeight || 300;
+    if (top + h > vh - 8) top = Math.max(8, r.top - gap - h);
+    const width = Math.min(r.width, vw - 16);
+    let left = Math.max(8, Math.min(r.left, vw - width - 8));
+    panel.style.top = top + 'px';
+    panel.style.left = left + 'px';
+    panel.style.width = width + 'px';
+  }
+
+  function lineupRowHtml(p) {
+    const fb = escapeHtml(shortMark(p.name));
+    const photo = p.photo
+      ? `<span class="lineup-photo-wrap"><img class="lineup-photo" alt="" src="${escapeHtml(p.photo)}" /><span class="img-fallback">${fb}</span></span>`
+      : `<span class="lineup-photo-wrap"><span class="img-fallback show">${fb}</span></span>`;
+    return `<div class="lineup-row">
+      <span class="lineup-num">${p.number != null ? escapeHtml(String(p.number)) : '–'}</span>
+      ${photo}
+      <span class="lineup-pname">${escapeHtml(p.name || '?')}</span>
+      <span class="lineup-pos">${escapeHtml(p.positionShort || p.position || '')}</span>
+    </div>`;
+  }
+
+  function wireLineupImgs(container) {
+    container.querySelectorAll('.lineup-photo').forEach((img) => {
+      img.onerror = () => {
+        img.style.visibility = 'hidden';
+        const fb = img.nextElementSibling;
+        if (fb && fb.classList.contains('img-fallback')) fb.classList.add('show');
+      };
+    });
+  }
+
+  function renderLineup(m, lineup) {
+    if (!m || !lineup) return;
+    lineupMatch.textContent = `${m.home.name.toUpperCase()} ${m.score ? m.score.home : '-'} - ${m.score ? m.score.away : '-'} ${m.away.name.toUpperCase()}`;
+    setImg(lineupHomeCrest, m.home.logo, shortMark(m.home.name));
+    setImg(lineupAwayCrest, m.away.logo, shortMark(m.away.name));
+    lineupHomeName.textContent = m.home.name.toUpperCase();
+    lineupAwayName.textContent = m.away.name.toUpperCase();
+    lineupHomeFormation.textContent = (lineup.home && lineup.home.formation) || '';
+    lineupAwayFormation.textContent = (lineup.away && lineup.away.formation) || '';
+    lineupHomeBody.innerHTML = ((lineup.home && lineup.home.players) || []).map(lineupRowHtml).join('');
+    lineupAwayBody.innerHTML = ((lineup.away && lineup.away.players) || []).map(lineupRowHtml).join('');
+    wireLineupImgs(lineupHomeBody);
+    wireLineupImgs(lineupAwayBody);
+    lineupPanelMatch = m.id;
+    lineupPanel.classList.remove('hidden');
+    lineupPanel.classList.remove('show');
+    void lineupPanel.offsetWidth;
+    lineupPanel.classList.add('show');
+    anchorLineup(lineupPanel);
+  }
+
+  function hideLineup() {
+    lineupPanelMatch = null;
+    clearTimeout(lineupTimer);
+    lineupTimer = null;
+    lineupPanel.classList.add('hidden');
+  }
+
+  // Show the starting elevens once, just after kickoff (while the clock is still
+  // in the first minutes of the 1st half), then auto-hide after a few seconds.
+  let lineupPanelMatch = null;
+  let lineupHandled = {};
+  let lineupTimer = null;
+  let lineupLoading = false;
+
+  async function maybeShowLineup(m) {
+    if (!m || !m.isLive || lineupHandled[m.id] || lineupLoading) return;
+    const min = numericMinute(m);
+    if (min != null && min > 4) return;
+    lineupLoading = true;
+    try {
+      const res = await fetch(`/api/lineup?id=${encodeURIComponent(m.id)}`, { cache: 'no-store' });
+      const json = await res.json();
+      const lineup = json && json.lineup;
+      const total =
+        lineup && lineup.home && lineup.away
+          ? lineup.home.players.length + lineup.away.players.length
+          : 0;
+      if (lineup && total >= 22) {
+        lineupHandled[m.id] = true;
+        renderLineup(m, lineup);
+        clearTimeout(lineupTimer);
+        lineupTimer = setTimeout(hideLineup, 15000);
+      }
+    } catch (e) {
+      /* retry on the next tick while the clock is still early */
+    } finally {
+      lineupLoading = false;
+    }
+  }
+
   function triggerSwitchAnimation() {
     bar.classList.remove('switching');
     void bar.offsetWidth;
@@ -642,5 +760,7 @@
   // Test/debug hook used by the --smoke run.
   window.__scoreboardDebug = {
     showSubPopup: showSubPopup,
+    renderLineup: renderLineup,
+    hideLineup: hideLineup,
   };
 })();
