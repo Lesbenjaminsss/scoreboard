@@ -1,5 +1,6 @@
 # Preview
-<img width="661" height="82" alt="Ekran Alıntısı" src="https://github.com/user-attachments/assets/bd490faf-ff93-4f67-a20d-2562b4e3b809" />
+![Uploading Ekran Alıntısı.PNG…]()
+
 ------------------------------------------------------------------------------------------------------------------------------------------
 <img width="683" height="171" alt="Ekran Alıntısı2" src="https://github.com/user-attachments/assets/3b62b4da-c0b4-405f-9a6c-38c0f666de15" />
 ------------------------------------------------------------------------------------------------------------------------------------------
