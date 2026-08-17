@@ -1,11 +1,5 @@
 # Preview
-<img width="449" height="100" alt="Ekran Alıntısı" src="https://github.com/user-attachments/assets/ee08abc7-09c9-4cee-a99a-db9d17dc2b62" />
-------------------------------------------------------------------------------------------------------------------------------------------
-<img width="683" height="171" alt="Ekran Alıntısı2" src="https://github.com/user-attachments/assets/3b62b4da-c0b4-405f-9a6c-38c0f666de15" />
-------------------------------------------------------------------------------------------------------------------------------------------
-<img width="662" height="496" alt="Ekran Alıntısı3" src="https://github.com/user-attachments/assets/36d817df-6cb8-4405-a9f1-df26c6ee8604" />
-------------------------------------------------------------------------------------------------------------------------------------------
-<img width="586" height="267" alt="Ekran Alıntısı5" src="https://github.com/user-attachments/assets/4d619f6b-9956-46a4-adc2-31575fe064ef" />
+<img width="672" height="130" alt="Ekran Alıntısı1" src="https://github.com/user-attachments/assets/a0cd7645-c3f7-49d0-a92b-0416db010d45" />
 
 
 
