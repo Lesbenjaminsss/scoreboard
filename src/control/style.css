@@ -16,6 +16,62 @@
   --live: #ff2d55;
 }
 
+/* League theme accents on control panel (follows selected league) */
+body[data-league-theme='super-lig'] {
+  --accent: #c00016;
+  --accent2: #ffce2e;
+}
+
+body[data-league-theme='super-lig'] .topbar {
+  background: linear-gradient(180deg, #1a0810, #120610);
+  border-bottom-color: rgba(255, 206, 46, 0.25);
+}
+
+body[data-league-theme='super-lig'] .logo-mark {
+  background: linear-gradient(135deg, #c00016, #8a0012);
+  box-shadow: 0 0 18px -2px #ffce2e;
+}
+
+body[data-league-theme='premier-league'] {
+  --accent: #38003c;
+  --accent2: #00ff87;
+}
+
+body[data-league-theme='laliga'] {
+  --accent: #d1001c;
+  --accent2: #ffd54a;
+}
+
+body[data-league-theme='bundesliga'] {
+  --accent: #c70016;
+  --accent2: #f2a900;
+}
+
+body[data-league-theme='serie-a'] {
+  --accent: #01679a;
+  --accent2: #7fd8ff;
+}
+
+body[data-league-theme='champions-league'] {
+  --accent: #10245c;
+  --accent2: #33c3ff;
+}
+
+body[data-league-theme='europa-league'] {
+  --accent: #b4480a;
+  --accent2: #ffc04a;
+}
+
+body[data-league-theme='ligue-1'] {
+  --accent: #00336e;
+  --accent2: #e3004b;
+}
+
+body[data-league-theme='generic'] {
+  --accent: #7c4dff;
+  --accent2: #d4ff00;
+}
+
 html,
 body {
   height: 100%;

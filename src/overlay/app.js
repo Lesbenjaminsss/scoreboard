@@ -7,6 +7,8 @@
 
   const leagueLogo = document.getElementById('leagueLogo');
   const leagueName = document.getElementById('leagueName');
+  const homeTeamEl = document.querySelector('.team.home');
+  const awayTeamEl = document.querySelector('.team.away');
   const homeCrest = document.getElementById('homeCrest');
   const homeName = document.getElementById('homeName');
   const awayCrest = document.getElementById('awayCrest');
@@ -15,6 +17,7 @@
   const scoreHome = document.getElementById('scoreHome');
   const scoreAway = document.getElementById('scoreAway');
   const midLogo = document.getElementById('midLogo');
+  const centerLeague = document.getElementById('centerLeague');
   const clockEl = document.getElementById('clock');
   const liveEl = document.querySelector('.live');
   const liveText = document.getElementById('liveText');
@@ -75,8 +78,36 @@
   let currentId = null;
   let fetchedAt = 0;
   let started = false;
+  let currentLayout = 'broadcast';
 
   // ---------- helpers ----------
+
+  function pickClockText(bg) {
+    const s = String(bg || '');
+    if (s.startsWith('hsl')) {
+      const parts = s.match(/[\d.]+/g);
+      if (parts && parts.length >= 3) {
+        return Number(parts[2]) > 55 ? '#111111' : '#ffffff';
+      }
+    }
+    if (s.startsWith('#') && s.length >= 7) {
+      const r = parseInt(s.slice(1, 3), 16);
+      const g = parseInt(s.slice(3, 5), 16);
+      const b = parseInt(s.slice(5, 7), 16);
+      const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+      return lum > 0.62 ? '#111111' : '#ffffff';
+    }
+    return '#111111';
+  }
+
+  function applyLeagueAccent(style) {
+    const primary = style.primary || '#38003c';
+    const secondary = style.secondary || '#d4ff00';
+    sb.style.setProperty('--accent', primary);
+    sb.style.setProperty('--accent2', secondary);
+    sb.style.setProperty('--clock-bg', secondary);
+    sb.style.setProperty('--clock-color', pickClockText(secondary));
+  }
 
   function t(key) {
     return (window.I18N && window.I18N[lang] && window.I18N[lang][key]) || (window.I18N && window.I18N.tr[key]) || key;
@@ -120,11 +151,80 @@
     return matches[index] || null;
   }
 
+  function isBroadcast() {
+    return currentLayout === 'broadcast';
+  }
+
+  function broadcastClock(m) {
+    if (m.isLive) return displayClock(m);
+    if (m.state === 'post') return "90'";
+    return m.clockLabel || "0'";
+  }
+
+  function applyBroadcastColors(m) {
+    const tc = window.TeamColors;
+    if (!tc) return;
+
+    const home = tc.teamColors(m.home && m.home.name, m.home && m.home.id);
+    const away = tc.teamColors(m.away && m.away.name, m.away && m.away.id);
+
+    sb.style.setProperty('--home-color', home.color);
+    sb.style.setProperty('--home-text', home.text);
+    sb.style.setProperty('--away-color', away.color);
+    sb.style.setProperty('--away-text', away.text);
+
+    paintBroadcastTeam(homeTeamEl, homeName, home, 'home');
+    paintBroadcastTeam(awayTeamEl, awayName, away, 'away');
+  }
+
+  function paintBroadcastTeam(teamEl, nameEl, colors, side) {
+    if (!teamEl || !nameEl || !colors) return;
+    const { color, text } = colors;
+    const grad =
+      side === 'home'
+        ? `linear-gradient(90deg, ${color} 0%, #0a0a0a 78%, #000 100%)`
+        : `linear-gradient(90deg, #000 0%, #0a0a0a 22%, ${color} 100%)`;
+    const edge =
+      side === 'home' ? `inset 5px 0 0 ${color}` : `inset -5px 0 0 ${color}`;
+
+    teamEl.style.setProperty('background', grad, 'important');
+    teamEl.style.setProperty('box-shadow', edge, 'important');
+    nameEl.style.setProperty('background', color, 'important');
+    nameEl.style.setProperty('color', text, 'important');
+    nameEl.style.setProperty('text-shadow', 'none', 'important');
+  }
+
+  function clearBroadcastColors() {
+    sb.style.removeProperty('--home-color');
+    sb.style.removeProperty('--home-text');
+    sb.style.removeProperty('--away-color');
+    sb.style.removeProperty('--away-text');
+    clearPaint(homeTeamEl, homeName);
+    clearPaint(awayTeamEl, awayName);
+  }
+
+  function clearPaint(teamEl, nameEl) {
+    if (teamEl) {
+      teamEl.style.removeProperty('background');
+      teamEl.style.removeProperty('box-shadow');
+    }
+    if (nameEl) {
+      nameEl.style.removeProperty('background');
+      nameEl.style.removeProperty('color');
+      nameEl.style.removeProperty('text-shadow');
+    }
+  }
+
+  function formatClock(m) {
+    return broadcastClock(m);
+  }
+
   function applySettings() {
     sb.style.setProperty('--scale', settings.scale || 1);
     sb.style.setProperty('--opacity', settings.opacity == null ? 1 : settings.opacity);
     sb.style.setProperty('--offset-y', `${settings.offsetY == null ? 26 : settings.offsetY}px`);
     document.documentElement.style.setProperty('--opacity', settings.opacity == null ? 1 : settings.opacity);
+    document.documentElement.style.setProperty('--scale', settings.scale || 1);
     sb.dataset.pos = VALID_POSITIONS.includes(settings.position) ? settings.position : 'bottom';
 
     lang = settings.language === 'en' ? 'en' : 'tr';
@@ -139,6 +239,19 @@
 
     homeGoals.dataset.html = '';
     awayGoals.dataset.html = '';
+    syncBarMetrics();
+    reanchorPopups();
+  }
+
+  function panelScale() {
+    return Number(settings.scale) || 1;
+  }
+
+  function syncBarMetrics() {
+    const sc = panelScale();
+    document.documentElement.style.setProperty('--scale', sc);
+    const w = bar && bar.offsetWidth ? bar.offsetWidth : 860;
+    document.documentElement.style.setProperty('--bar-width', `${w}px`);
   }
 
   // ---------- rendering ----------
@@ -171,9 +284,17 @@
     return String(name || '').trim().charAt(0).toUpperCase() || '?';
   }
 
-  function setTeam(img, name, team) {
+  function setTeam(img, nameEl, team, broadcast) {
     setImg(img, team && team.logo, team ? shortMark(team.name) : null);
-    name.textContent = team ? team.name.toUpperCase() : '';
+    if (!team) {
+      nameEl.textContent = '';
+      return;
+    }
+    if (broadcast && window.TeamColors) {
+      nameEl.textContent = window.TeamColors.teamAbbrev(team.name, team.id);
+    } else {
+      nameEl.textContent = team.name.toUpperCase();
+    }
   }
 
   function escapeHtml(s) {
@@ -187,7 +308,10 @@
   function renderCards(container, kinds, matchId) {
     const list = Array.isArray(kinds) ? kinds : [];
     const html = list
-      .map((k) => `<span class="card ${k === 'rc' ? 'rc' : 'yc'}"></span>`)
+      .map((k) => {
+        const kind = k && k.kind ? k.kind : k;
+        return `<span class="card ${kind === 'rc' ? 'rc' : 'yc'}"></span>`;
+      })
       .join('');
     if (container.dataset.html === html) return;
     container.dataset.html = html;
@@ -251,13 +375,20 @@
 
     if (lineupPanelMatch && lineupPanelMatch !== m.id) hideLineup();
 
-    // league accent -> middle badge + glow
+    // league accent + broadcast theme (all leagues)
     const style = m.style || {};
-    sb.style.setProperty('--accent', style.primary || '#38003c');
-    sb.style.setProperty('--accent2', style.secondary || '#00ff87');
+    const theme = style.theme || 'generic';
+    currentLayout = 'broadcast';
+    sb.dataset.theme = theme;
+    sb.dataset.layout = 'broadcast';
+    document.documentElement.dataset.layout = 'broadcast';
+    applyLeagueAccent(style);
+    centerLeague.textContent = (m.competitionName || '').toUpperCase();
 
-    setTeam(homeCrest, homeName, m.home);
-    setTeam(awayCrest, awayName, m.away);
+    applyBroadcastColors(m);
+
+    setTeam(homeCrest, homeName, m.home, true);
+    setTeam(awayCrest, awayName, m.away, true);
 
     renderCards(homeCards, m.events && m.events.home, m.id);
     renderCards(awayCards, m.events && m.events.away, m.id);
@@ -286,19 +417,21 @@
     checkPenalties(m);
     checkSubs(m);
     maybeShowLineup(m);
+    syncBarMetrics();
+    reanchorPopups();
 
     if (m.isLive) {
       liveEl.classList.remove('off');
       liveText.textContent = t('LIVE');
-      clockEl.textContent = displayClock(m);
+      clockEl.textContent = broadcastClock(m);
     } else if (m.state === 'post') {
       liveEl.classList.add('off');
       liveText.textContent = t('FINISHED');
-      clockEl.textContent = m.clockLabel || 'MS';
+      clockEl.textContent = broadcastClock(m);
     } else {
       liveEl.classList.add('off');
       liveText.textContent = t('UPCOMING');
-      clockEl.textContent = m.clockLabel || '';
+      clockEl.textContent = broadcastClock(m);
     }
   }
 
@@ -351,21 +484,82 @@
     return isNaN(n) ? 0 : n;
   }
 
-  // Anchor a fixed panel just below (or above if needed) the scoreboard bar.
-  function anchorPanel(panel) {
+  function scaledPanelSize(panel) {
+    const sc = panelScale();
+    return {
+      w: panel.offsetWidth * sc,
+      h: panel.offsetHeight * sc,
+    };
+  }
+
+  // Anchor a fixed panel just below the scoreboard bar (broadcast layout).
+  function anchorPanel(panel, opts) {
+    const options = opts || {};
     const r = bar.getBoundingClientRect();
     if (!r.width && !r.height) return;
-    const w = panel.offsetWidth;
-    const h = panel.offsetHeight;
-    const gap = 12;
+    syncBarMetrics();
+    const sc = panelScale();
+    const gap = options.gap == null ? 4 : options.gap;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
+    const pad = 8;
+    const inner = panel.querySelector('.stats-inner, .lineup-inner, .goal-inner, .sub-inner') || panel;
+    const body = panel.querySelector('.stats-body, .lineup-cols');
+    const head = panel.querySelector('.stats-head, .lineup-head');
+    const fullWidth = options.fullWidth === true
+      || panel.classList.contains('stats-panel')
+      || panel.classList.contains('lineup-panel');
+
+    if (options.belowBar) {
+      const barW = Math.min(r.width, vw - pad * 2);
+      panel.style.width = '';
+      if (fullWidth) {
+        inner.style.width = `${barW / sc}px`;
+        inner.style.maxWidth = `${barW / sc}px`;
+      } else {
+        inner.style.width = '';
+        inner.style.maxWidth = `${barW / sc}px`;
+      }
+
+      const top = r.bottom + gap;
+      let left = fullWidth
+        ? Math.max(pad, Math.min(r.left, vw - barW - pad))
+        : r.left + r.width / 2;
+
+      if (body) {
+        const headH = head ? head.offsetHeight : 0;
+        const innerPad = 28;
+        const maxBody = Math.max(72, vh - top - headH - innerPad - pad);
+        body.style.maxHeight = `${maxBody / sc}px`;
+        body.style.overflowY = 'auto';
+        body.style.overflowX = 'hidden';
+      }
+
+      const { w, h } = scaledPanelSize(panel);
+      if (!fullWidth) left -= w / 2;
+      left = Math.max(pad, Math.min(left, vw - w - pad));
+
+      panel.style.top = `${top}px`;
+      panel.style.left = `${left}px`;
+      return;
+    }
+
+    const { w, h } = scaledPanelSize(panel);
     let top = r.bottom + gap;
-    if (top + h > vh - 8) top = Math.max(8, r.top - gap - h);
+    if (top + h > vh - pad) top = Math.max(pad, r.top - gap - h);
     let left = r.left + r.width / 2 - w / 2;
-    left = Math.max(8, Math.min(left, vw - w - 8));
-    panel.style.top = top + 'px';
-    panel.style.left = left + 'px';
+    left = Math.max(pad, Math.min(left, vw - w - pad));
+    panel.style.top = `${top}px`;
+    panel.style.left = `${left}px`;
+  }
+
+  function reanchorPopups() {
+    syncBarMetrics();
+    const anchor = { belowBar: true, gap: 4 };
+    if (!statsPanel.classList.contains('hidden')) anchorPanel(statsPanel, anchor);
+    if (!lineupPanel.classList.contains('hidden')) anchorPanel(lineupPanel, anchor);
+    if (!goalPanel.classList.contains('hidden')) anchorPanel(goalPanel, anchor);
+    if (!subPanel.classList.contains('hidden')) anchorPanel(subPanel, anchor);
   }
 
   function renderStatsPanel(m, stats, isHalftime) {
@@ -414,7 +608,7 @@
     statsPanel.classList.remove('show');
     void statsPanel.offsetWidth;
     statsPanel.classList.add('show');
-    anchorPanel(statsPanel);
+    anchorPanel(statsPanel, { belowBar: true, gap: 4 });
   }
 
   let statsTimer = null;
@@ -480,7 +674,7 @@
     goalPanel.classList.remove('show');
     void goalPanel.offsetWidth;
     goalPanel.classList.add('show');
-    anchorPanel(goalPanel);
+    anchorPanel(goalPanel, { belowBar: true, gap: 4 });
     clearTimeout(goalTimer);
     goalTimer = setTimeout(() => goalPanel.classList.add('hidden'), 6000);
   }
@@ -548,7 +742,7 @@
     subPanel.classList.remove('show');
     void subPanel.offsetWidth;
     subPanel.classList.add('show');
-    anchorPanel(subPanel);
+    anchorPanel(subPanel, { belowBar: true, gap: 4 });
     clearTimeout(subTimer);
     subTimer = setTimeout(() => subPanel.classList.add('hidden'), 6000);
   }
@@ -569,24 +763,6 @@
   }
 
   // ---------- starting eleven drop-down panel ----------
-
-  // Anchor the panel as a drop-down attached under the scoreboard bar. If there
-  // is no room below (bar near the screen bottom), flip it above instead.
-  function anchorLineup(panel) {
-    const r = bar.getBoundingClientRect();
-    if (!r.width) return;
-    const gap = 2;
-    const vh = window.innerHeight;
-    const vw = window.innerWidth;
-    let top = r.bottom + gap;
-    const h = panel.offsetHeight || 300;
-    if (top + h > vh - 8) top = Math.max(8, r.top - gap - h);
-    const width = Math.min(r.width, vw - 16);
-    let left = Math.max(8, Math.min(r.left, vw - width - 8));
-    panel.style.top = top + 'px';
-    panel.style.left = left + 'px';
-    panel.style.width = width + 'px';
-  }
 
   function lineupRowHtml(p) {
     const fb = escapeHtml(shortMark(p.name));
@@ -629,7 +805,7 @@
     lineupPanel.classList.remove('show');
     void lineupPanel.offsetWidth;
     lineupPanel.classList.add('show');
-    anchorLineup(lineupPanel);
+    anchorPanel(lineupPanel, { belowBar: true, gap: 4 });
   }
 
   function hideLineup() {
@@ -732,7 +908,7 @@
   function tick() {
     const m = currentMatch();
     if (m && m.isLive) {
-      clockEl.textContent = displayClock(m);
+      clockEl.textContent = formatClock(m);
       maybeStatsMilestone(m);
     }
   }
@@ -756,6 +932,7 @@
   fetchState();
   setupCycle();
   setInterval(tick, 1000);
+  window.addEventListener('resize', reanchorPopups);
 
   // Test/debug hook used by the --smoke run.
   window.__scoreboardDebug = {

@@ -158,8 +158,9 @@ body {
   gap: 10px;
   padding: 0 18px;
   border-right: 1px solid rgba(255, 255, 255, 0.1);
-  min-width: 0;
+  width: 170px;
   flex-shrink: 0;
+  overflow: hidden;
 }
 
 .brand-logo-wrap {
@@ -724,6 +725,14 @@ body {
 }
 
 /* ---------- statistics panel ---------- */
+
+.stats-panel,
+.goal-panel,
+.sub-panel,
+.lineup-panel {
+  transform: scale(var(--scale, 1));
+  transform-origin: 0 0;
+}
 
 .stats-panel {
   position: fixed;
