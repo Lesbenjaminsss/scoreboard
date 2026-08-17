@@ -1,0 +1,671 @@
+/* Broadcast TV scoreboard layout — Trendyol Süper Lig style and other leagues */
+
+.center-league {
+  display: none;
+}
+
+#sb[data-layout='broadcast'] {
+  padding-bottom: 30px;
+  overflow: visible;
+}
+
+#sb[data-layout='broadcast'] .bar {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: 8px;
+  min-width: 620px;
+  max-width: 860px;
+  height: auto;
+  min-height: 88px;
+  background: linear-gradient(180deg, #161616 0%, #080808 55%, #000000 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  box-shadow:
+    0 10px 36px rgba(0, 0, 0, 0.72),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  overflow: visible;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+#sb[data-layout='broadcast'] .bar::before {
+  display: block;
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.15) 0%,
+    rgba(0, 0, 0, 0.55) 42%,
+    rgba(0, 0, 0, 0.55) 58%,
+    rgba(0, 0, 0, 0.15) 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+#sb[data-layout='broadcast'] .bar::after {
+  display: none;
+}
+
+#sb[data-layout='broadcast'] .brand {
+  display: none;
+}
+
+#sb[data-layout='broadcast'] .team {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0;
+  min-height: 88px;
+  padding: 6px 0 4px;
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  min-width: 0;
+}
+
+#sb[data-layout='broadcast'] .team-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 52px;
+  min-width: 0;
+}
+
+#sb[data-layout='broadcast'] .team.home {
+  grid-column: 1;
+  order: 1;
+  padding: 6px 8px 4px 14px;
+  border-radius: 8px 0 0 8px;
+}
+
+#sb[data-layout='broadcast'] .team.home .team-row {
+  justify-content: flex-end;
+}
+
+#sb[data-layout='broadcast'] .team.away {
+  grid-column: 3;
+  order: 3;
+  padding: 6px 14px 4px 8px;
+  border-radius: 0 8px 8px 0;
+}
+
+#sb[data-layout='broadcast'] .team.away .team-row {
+  justify-content: flex-start;
+}
+
+#sb[data-layout='broadcast'] .goals,
+#sb[data-layout='broadcast'] .pen-flash {
+  display: none !important;
+}
+
+#sb[data-layout='broadcast'] .team-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  flex: 0 1 auto;
+  max-width: calc(100% - 60px);
+  position: relative;
+  padding-top: 14px;
+}
+
+#sb[data-layout='broadcast'] .team.home .team-info {
+  align-items: flex-end;
+  text-align: right;
+}
+
+#sb[data-layout='broadcast'] .team.away .team-info {
+  align-items: flex-start;
+  text-align: left;
+}
+
+#sb[data-layout='broadcast'] .team .cards {
+  display: flex !important;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  transform: none;
+  flex-direction: row;
+  gap: 3px;
+  align-items: center;
+  min-height: 12px;
+  margin: 0;
+  padding: 0;
+  z-index: 6;
+  max-height: none;
+  overflow: visible;
+  pointer-events: none;
+}
+
+#sb[data-layout='broadcast'] .team.home .cards,
+#sb[data-layout='broadcast'] .team.away .cards {
+  left: 0;
+  right: 0;
+  top: 0;
+}
+
+#sb[data-layout='broadcast'] .team.home .cards {
+  justify-content: flex-end;
+}
+
+#sb[data-layout='broadcast'] .team.away .cards {
+  justify-content: flex-start;
+}
+
+#sb[data-layout='broadcast'] .team .cards:empty {
+  display: none !important;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+}
+
+#sb[data-layout='broadcast'] .team .card {
+  width: 8px;
+  height: 12px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  display: block;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
+}
+
+#sb[data-layout='broadcast'] .team .card.yc {
+  background: linear-gradient(180deg, #ffe066, #ffd54a 60%, #f0b500);
+  box-shadow: 0 0 8px rgba(255, 213, 74, 0.85), 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+#sb[data-layout='broadcast'] .team .card.rc {
+  background: linear-gradient(180deg, #ff7a7a, #ff5252 60%, #e02a2a);
+  box-shadow: 0 0 8px rgba(255, 82, 82, 0.9), 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+#sb[data-layout='broadcast'] .crest-wrap {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 52px;
+  width: 52px;
+  height: 52px;
+  position: relative;
+}
+
+#sb[data-layout='broadcast'] .crest {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.55));
+}
+
+#sb[data-layout='broadcast'] .crest-wrap .img-fallback {
+  width: 48px;
+  height: 48px;
+  font-size: 18px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+}
+
+#sb[data-layout='broadcast'] .tname {
+  display: inline-block;
+  padding: 6px 16px;
+  border-radius: 4px;
+  font-family: 'Montserrat', 'Segoe UI', sans-serif;
+  font-size: 42px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  line-height: 1;
+  text-transform: uppercase;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#sb[data-layout='broadcast'] .center {
+  grid-column: 2;
+  order: 2;
+  position: relative;
+  left: auto;
+  top: auto;
+  transform: none;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 4px;
+  background: transparent;
+  border: none;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+#sb[data-layout='broadcast'] .score-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  margin-top: 0;
+}
+
+#sb[data-layout='broadcast'] .score-wrap {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+#sb[data-layout='broadcast'] .score-league-wrap {
+  position: relative;
+  right: auto;
+  top: auto;
+  margin-right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 52px;
+}
+
+#sb[data-layout='broadcast'] .score-block .sub {
+  display: none;
+}
+
+#sb[data-layout='broadcast'] .sep-col {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  flex-shrink: 0;
+  width: auto;
+  padding-bottom: 20px;
+}
+
+#sb[data-layout='broadcast'] .score {
+  display: inline-grid;
+  grid-template-columns: auto auto auto;
+  align-items: start;
+  column-gap: 2px;
+  margin-top: 0;
+  font-family: 'Montserrat', 'Segoe UI', sans-serif;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.65);
+}
+
+#sb[data-layout='broadcast'] .score .sc:first-child,
+#sb[data-layout='broadcast'] .score .sc:last-child {
+  justify-self: center;
+}
+
+#sb[data-layout='broadcast'] .mid-logo {
+  display: block !important;
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.55));
+}
+
+#sb[data-layout='broadcast'] .score-league-wrap .img-fallback.mid {
+  display: none;
+  width: 40px;
+  height: 40px;
+  font-size: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+}
+
+#sb[data-layout='broadcast'] .score-league-wrap .img-fallback.mid.show {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+#sb[data-layout='broadcast'] .score .sep {
+  display: block;
+  font-family: 'Montserrat', 'Segoe UI', sans-serif;
+  font-size: 52px;
+  font-weight: 900;
+  font-style: normal;
+  color: #ffffff;
+  line-height: 1;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.65);
+  margin: 0;
+}
+
+#sb[data-layout='broadcast'] .score .sc {
+  width: auto;
+  height: auto;
+  min-width: 0;
+  border-radius: 0;
+  background: none;
+  color: #ffffff;
+  font-family: 'Montserrat', 'Segoe UI', sans-serif;
+  font-size: 52px;
+  font-weight: 900;
+  font-style: normal;
+  line-height: 1;
+  display: block;
+  box-shadow: none;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  width: 1.15em;
+  min-width: 1.15em;
+}
+
+#sb[data-layout='broadcast'] .score .sc:first-child,
+#sb[data-layout='broadcast'] .score .sc:last-child {
+  margin: 0;
+  z-index: auto;
+}
+
+#sb[data-layout='broadcast'] .score.goal {
+  animation: none;
+  color: inherit;
+}
+
+#sb[data-layout='broadcast'] .score.goal .sc {
+  animation: bcGoalPop 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes bcGoalPop {
+  0% {
+    transform: scale(1);
+    color: #ffffff;
+  }
+  35% {
+    transform: scale(1.18);
+    color: var(--clock-bg, #d4ff00);
+  }
+  100% {
+    transform: scale(1);
+    color: #ffffff;
+  }
+}
+
+#sb[data-layout='broadcast'] .sub {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 2px;
+  height: auto;
+  gap: 0;
+}
+#sb[data-layout='broadcast'] .center-league,
+#sb[data-layout='broadcast'] .live {
+  display: none !important;
+}
+
+#sb[data-layout='broadcast'] .clock {
+  position: absolute;
+  top: calc(100% - 14px);
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 0;
+  display: inline-block;
+  background: var(--clock-bg, #d4ff00);
+  color: var(--clock-color, #111111);
+  font-family: 'Montserrat', 'Segoe UI', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  font-variant-numeric: tabular-nums;
+  padding: 5px 10px;
+  border-radius: 5px;
+  min-width: 44px;
+  text-align: center;
+  line-height: 1.1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+  white-space: nowrap;
+}
+
+#sb[data-layout='broadcast'] .stats-inner,
+#sb[data-layout='broadcast'] .lineup-inner {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* ---------- Süper Lig ---------- */
+
+#sb[data-theme='super-lig'][data-layout='broadcast'] {
+  --clock-bg: #d4ff00;
+  --clock-color: #111111;
+}
+
+#sb[data-theme='super-lig'][data-layout='broadcast'] .stats-inner,
+#sb[data-theme='super-lig'][data-layout='broadcast'] .lineup-inner {
+  background: linear-gradient(180deg, #1a1a1a, #0a0a0a);
+  border: 1px solid rgba(212, 255, 0, 0.35);
+  border-radius: 8px;
+}
+
+#sb[data-theme='super-lig'][data-layout='broadcast'] .goal-inner {
+  background: linear-gradient(180deg, #1a1a1a, #0a0a0a);
+  border-color: rgba(212, 255, 0, 0.5);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.6), 0 0 34px -6px #d4ff00;
+}
+
+#sb[data-theme='super-lig'][data-layout='broadcast'] .goal-tag {
+  color: #d4ff00;
+  text-shadow: 0 0 10px #d4ff00;
+}
+
+/* ---------- Premier League ---------- */
+
+#sb[data-theme='premier-league'][data-layout='broadcast'] {
+  --clock-bg: #00ff87;
+  --clock-color: #111111;
+}
+
+#sb[data-theme='premier-league'][data-layout='broadcast'] .team.home {
+  box-shadow: inset 4px 0 0 #38003c;
+}
+
+#sb[data-theme='premier-league'][data-layout='broadcast'] .team.away {
+  box-shadow: inset -4px 0 0 #00ff87;
+}
+
+/* ---------- La Liga ---------- */
+
+#sb[data-theme='laliga'][data-layout='broadcast'] {
+  --clock-bg: #ffd54a;
+  --clock-color: #111111;
+}
+
+#sb[data-theme='laliga'][data-layout='broadcast'] .team.home {
+  box-shadow: inset 4px 0 0 #d1001c;
+}
+
+#sb[data-theme='laliga'][data-layout='broadcast'] .team.away {
+  box-shadow: inset -4px 0 0 #ffd54a;
+}
+
+/* ---------- Bundesliga ---------- */
+
+#sb[data-theme='bundesliga'][data-layout='broadcast'] {
+  --clock-bg: #f2a900;
+  --clock-color: #111111;
+}
+
+#sb[data-theme='bundesliga'][data-layout='broadcast'] .team.home {
+  box-shadow: inset 4px 0 0 #c70016;
+}
+
+#sb[data-theme='bundesliga'][data-layout='broadcast'] .team.away {
+  box-shadow: inset -4px 0 0 #f2a900;
+}
+
+/* ---------- Serie A ---------- */
+
+#sb[data-theme='serie-a'][data-layout='broadcast'] {
+  --clock-bg: #7fd8ff;
+  --clock-color: #111111;
+}
+
+#sb[data-theme='serie-a'][data-layout='broadcast'] .team.home {
+  box-shadow: inset 4px 0 0 #01679a;
+}
+
+#sb[data-theme='serie-a'][data-layout='broadcast'] .team.away {
+  box-shadow: inset -4px 0 0 #7fd8ff;
+}
+
+/* ---------- Ligue 1 ---------- */
+
+#sb[data-theme='ligue-1'][data-layout='broadcast'] {
+  --clock-bg: #e3004b;
+  --clock-color: #ffffff;
+}
+
+#sb[data-theme='ligue-1'][data-layout='broadcast'] .team.home {
+  box-shadow: inset 4px 0 0 #00336e;
+}
+
+#sb[data-theme='ligue-1'][data-layout='broadcast'] .team.away {
+  box-shadow: inset -4px 0 0 #e3004b;
+}
+
+/* ---------- Champions / Europa / Conference ---------- */
+
+#sb[data-theme='champions-league'][data-layout='broadcast'] {
+  --clock-bg: #33c3ff;
+  --clock-color: #111111;
+}
+
+#sb[data-theme='europa-league'][data-layout='broadcast'] {
+  --clock-bg: #ffc04a;
+  --clock-color: #111111;
+}
+
+#sb[data-theme='conference-league'][data-layout='broadcast'] {
+  --clock-bg: #2dd4bf;
+  --clock-color: #111111;
+}
+
+#sb[data-theme='eredivisie'][data-layout='broadcast'],
+#sb[data-theme='primeira-liga'][data-layout='broadcast'],
+#sb[data-theme='fa-cup'][data-layout='broadcast'],
+#sb[data-theme='world-cup'][data-layout='broadcast'],
+#sb[data-theme='euro'][data-layout='broadcast'],
+#sb[data-theme='generic'][data-layout='broadcast'] {
+  --clock-bg: var(--accent2, #ffd54a);
+  --clock-color: var(--clock-color, #111111);
+}
+
+/* ---------- Popup paneller: scoreboard ile aynı ölçek, daha geniş olmasın ---------- */
+
+html[data-layout='broadcast'] .stats-panel,
+html[data-layout='broadcast'] .goal-panel,
+html[data-layout='broadcast'] .sub-panel,
+html[data-layout='broadcast'] .lineup-panel {
+  transform: scale(var(--scale, 1));
+  transform-origin: top left;
+  max-width: calc(100vw - 16px);
+}
+
+html[data-layout='broadcast'] .stats-inner,
+html[data-layout='broadcast'] .lineup-inner {
+  min-width: 0;
+  max-width: var(--bar-width, 860px);
+  width: var(--bar-width, 860px);
+  box-sizing: border-box;
+  padding: 10px 14px 12px;
+  background: linear-gradient(180deg, #1a1a1a, #0a0a0a);
+  border: 1px solid color-mix(in srgb, var(--accent2, #d4ff00) 35%, transparent);
+  border-radius: 8px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 30px -8px var(--accent, #38003c);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+html[data-layout='broadcast'] .stats-body {
+  overflow-x: hidden;
+}
+
+html[data-layout='broadcast'] .lineup-cols {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+html[data-layout='broadcast'] .lineup-body {
+  overflow: visible;
+}
+
+html[data-layout='broadcast'] .goal-inner {
+  max-width: var(--bar-width, 860px);
+  padding: 6px 12px 6px 8px;
+  background: linear-gradient(180deg, #1a1a1a, #0a0a0a);
+  border-color: color-mix(in srgb, var(--accent2, #d4ff00) 50%, transparent);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55), 0 0 24px -6px var(--accent2, #d4ff00);
+}
+
+html[data-layout='broadcast'] .sub-inner {
+  max-width: var(--bar-width, 860px);
+  padding: 8px 14px 10px;
+}
+
+html[data-layout='broadcast'] .goal-photo-wrap {
+  width: 30px;
+  height: 30px;
+}
+
+html[data-layout='broadcast'] .goal-tag {
+  font-size: 10px;
+  color: var(--accent2, #d4ff00);
+  text-shadow: 0 0 8px var(--accent2, #d4ff00);
+}
+
+html[data-layout='broadcast'] .goal-name {
+  font-size: 12px;
+  max-width: 180px;
+}
+
+html[data-layout='broadcast'] .goal-min,
+html[data-layout='broadcast'] .goal-assist {
+  font-size: 10px;
+}
+
+html[data-layout='broadcast'] .stats-title,
+html[data-layout='broadcast'] .lineup-title {
+  font-size: 10px;
+  color: var(--accent2, #00ff87);
+  text-shadow: 0 0 8px var(--accent2, #00ff87);
+}
+
+html[data-layout='broadcast'] .stats-match,
+html[data-layout='broadcast'] .lineup-match {
+  font-size: 11px;
+}
+
+html[data-layout='broadcast'] .st-val {
+  font-size: 12px;
+}
+
+html[data-layout='broadcast'] .st-label {
+  font-size: 9px;
+}
+
+html[data-layout='broadcast'] .sub-title {
+  font-size: 9px;
+}
+
+html[data-layout='broadcast'] .sub-name {
+  font-size: 11px;
+  max-width: 160px;
+}
+
+html[data-layout='broadcast'] .lineup-pname {
+  font-size: 11px;
+}
+
+html[data-layout='broadcast'] .lineup-tname {
+  font-size: 11px;
+}

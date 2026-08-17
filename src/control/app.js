@@ -197,6 +197,21 @@
 
   // ---------- footer / settings ----------
 
+  function applyLeagueTheme() {
+    const selId = state.settings.selectedLeagueId;
+    const league = state.competitions.find((c) => c.id === selId);
+    const style = league && league.style;
+    if (style) {
+      document.documentElement.style.setProperty('--accent', style.primary);
+      document.documentElement.style.setProperty('--accent2', style.secondary);
+      document.body.dataset.leagueTheme = style.theme || 'generic';
+    } else {
+      document.documentElement.style.removeProperty('--accent');
+      document.documentElement.style.removeProperty('--accent2');
+      delete document.body.dataset.leagueTheme;
+    }
+  }
+
   function renderSettings() {
     const s = state.settings || {};
     $('cycleSec').value = Math.round(s.cycleInterval / 1000 || 8);
@@ -325,6 +340,7 @@
     setLang();
     renderSettings();
     renderStatus();
+    applyLeagueTheme();
     renderLeagues();
 
     if (!state.settings.selectedLeagueId && !autoSelected && state.competitions.length > 0) {

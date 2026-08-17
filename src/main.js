@@ -87,8 +87,8 @@ async function attachSelectedEvents() {
   if (!data) return;
   const selected = (settings.selectedMatchIds || [])
     .map((id) => data.matches.get(id))
-    .filter((m) => m && m.isLive);
-  await Promise.all(selected.slice(0, 6).map(attachMatchEvents));
+    .filter(Boolean);
+  await Promise.all(selected.slice(0, 8).map(attachMatchEvents));
 }
 
 async function attachMatchEvents(m) {
@@ -232,7 +232,12 @@ function buildControlState() {
     settings,
     updatedAt: data ? data.updatedAt : null,
     error: lastError,
-    competitions: data ? [...data.competitions.values()] : [],
+    competitions: data
+      ? [...data.competitions.values()].map((c) => ({
+          ...c,
+          style: getLeagueStyle(c),
+        }))
+      : [],
     matches: data ? [...data.matches.values()] : [],
   };
 }

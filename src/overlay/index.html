@@ -4,10 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Scoreboard — Overlay</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="themes.css" />
   </head>
   <body>
-    <div id="version" data-i18n="versionText">Scoreboard 0.04 Beta</div>
+    <div id="version" data-i18n="versionText">Scoreboard 0.05 Beta</div>
     <div id="stage">
       <div id="sb" class="hidden" data-pos="bottom">
         <div class="bar" id="bar">
@@ -20,42 +27,55 @@
           </div>
 
           <div class="team home">
-            <div class="crest-wrap">
-              <img id="homeCrest" class="crest" alt="" draggable="false" />
-              <span class="img-fallback" id="homeCrestFb"></span>
-              <div class="cards" id="homeCards"></div>
-            </div>
-            <div class="team-info">
-              <span id="homeName" class="tname">EV</span>
-              <div class="goals" id="homeGoals"></div>
-              <div id="homePenFlash" class="pen-flash hidden"></div>
+            <div class="team-row">
+              <div class="crest-wrap">
+                <img id="homeCrest" class="crest" alt="" draggable="false" />
+                <span class="img-fallback" id="homeCrestFb"></span>
+              </div>
+              <div class="team-info">
+                <div class="cards" id="homeCards"></div>
+                <span id="homeName" class="tname">EV</span>
+                <div class="goals" id="homeGoals"></div>
+                <div id="homePenFlash" class="pen-flash hidden"></div>
+              </div>
             </div>
           </div>
 
           <div class="center">
-            <div class="score" id="score">
-              <span id="scoreHome" class="sc">-</span>
-              <span class="sep">:</span>
-              <span id="scoreAway" class="sc">-</span>
-            </div>
-            <div class="sub">
-              <img id="midLogo" class="mid-logo" alt="" draggable="false" />
-              <span class="img-fallback mid" id="midLogoFb"></span>
-              <span id="clock" class="clock">00:00</span>
-              <span class="live"><span class="livedot"></span><span id="liveText">CANLI</span></span>
+            <div class="score-block">
+              <div class="score-wrap">
+                <div class="score-league-wrap">
+                  <img id="midLogo" class="mid-logo" alt="" draggable="false" />
+                  <span class="img-fallback mid" id="midLogoFb"></span>
+                </div>
+                <div class="score" id="score">
+                  <span id="scoreHome" class="sc">-</span>
+                  <span class="sep-col">
+                    <span class="sep">:</span>
+                    <span id="clock" class="clock">00'</span>
+                  </span>
+                  <span id="scoreAway" class="sc">-</span>
+                </div>
+              </div>
+              <div class="sub">
+                <span id="centerLeague" class="center-league"></span>
+                <span class="live"><span class="livedot"></span><span id="liveText">CANLI</span></span>
+              </div>
             </div>
           </div>
 
           <div class="team away">
-            <div class="team-info">
-              <span id="awayName" class="tname">DEP</span>
-              <div class="goals" id="awayGoals"></div>
-              <div id="awayPenFlash" class="pen-flash hidden"></div>
-            </div>
-            <div class="crest-wrap">
-              <img id="awayCrest" class="crest" alt="" draggable="false" />
-              <span class="img-fallback" id="awayCrestFb"></span>
-              <div class="cards" id="awayCards"></div>
+            <div class="team-row">
+              <div class="team-info">
+                <div class="cards" id="awayCards"></div>
+                <span id="awayName" class="tname">DEP</span>
+                <div class="goals" id="awayGoals"></div>
+                <div id="awayPenFlash" class="pen-flash hidden"></div>
+              </div>
+              <div class="crest-wrap">
+                <img id="awayCrest" class="crest" alt="" draggable="false" />
+                <span class="img-fallback" id="awayCrestFb"></span>
+              </div>
             </div>
           </div>
         </div>
@@ -156,6 +176,7 @@
     </div>
 
     <script src="/i18n.js"></script>
+    <script src="teamColors.js?v=2"></script>
     <script src="app.js"></script>
   </body>
 </html>
